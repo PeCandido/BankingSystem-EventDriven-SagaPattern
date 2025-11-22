@@ -12,6 +12,6 @@
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_23" project-jdk-name="openjdk-24" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/../BankingSystem/out" />
+    <output url="file://$PROJECT_DIR$/out" />
   </component>
 </project>
