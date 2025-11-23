@@ -13,6 +13,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @SuperBuilder
 public abstract class BaseEvent {
-    private UUID id;
+    private UUID eventId;
     private LocalDateTime eventDateTime;
 }
