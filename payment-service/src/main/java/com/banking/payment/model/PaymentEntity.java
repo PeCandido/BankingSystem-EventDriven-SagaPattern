@@ -19,7 +19,6 @@ import java.util.UUID;
 public class PaymentEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private UUID payerId;
     private UUID payeeId;
