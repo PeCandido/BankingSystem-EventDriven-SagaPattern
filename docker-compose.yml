@@ -5,24 +5,51 @@ services:
     image: postgres:18.1
     container_name: db-postgres
     environment:
-      POSTGRES_USER: bank_user
-      POSTGRES_PASSWORD: bank_password
-      POSTGRES_DB: bank_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  postgres-init:
+    image: postgres:18.1
+    container_name: postgres-init
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: postgres
+    command: |
+      psql -h postgres -U postgres -c "
+      CREATE DATABASE bank_db;
+      CREATE USER bank_user WITH PASSWORD 'bank_password';
+      GRANT ALL PRIVILEGES ON DATABASE bank_db TO bank_user;
+      ALTER DATABASE bank_db OWNER TO bank_user;
+      \c bank_db
+      GRANT ALL ON SCHEMA public TO bank_user;
+      ALTER SCHEMA public OWNER TO bank_user;
+      "
+    profiles:
+      - init
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:7.5.0
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
 
   kafka:
-    image: confluentinc/cp-kafka:latest-ubi9
+    image: confluentinc/cp-kafka:7.5.0-ubi9
     container_name: bank-kafka
     depends_on:
       - zookeeper
@@ -35,9 +62,31 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kafka-topics-init:
+    image: confluentinc/cp-kafka:7.5.0-ubi9
+    container_name: kafka-topics-init
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: >
+      bash -c "
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic payment-events --partitions 1 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic merchant-events --partitions 1 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --create --if-not-exists --topic notification-events --partitions 1 --replication-factor 1 &&
+      kafka-topics --bootstrap-server kafka:29092 --list
+      "
+    profiles:
+      - init
 
   kafdrop:
-    image: obsidiandynamics/kafdrop
+    image: obsidiandynamics/kafdrop:latest
     container_name: bank-kafdrop
     depends_on:
       - kafka
@@ -45,6 +94,7 @@ services:
       - "9000:9000"
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
+      JVM_OPTS: "-Xms32M -Xmx64M"
 
 volumes:
   postgres_data:
