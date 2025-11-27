@@ -7,6 +7,7 @@ import com.banking.payment.mapper.PaymentMapper;
 import com.banking.payment.model.Payment;
 import com.banking.payment.model.PaymentEntity;
 import com.banking.payment.repository.PaymentRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -22,6 +23,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
+    @Transactional
     public void createPayment(PaymentDto request) {
         Payment payment = new Payment(
                 null,
@@ -33,11 +35,11 @@ public class PaymentService {
         );
 
         payment.initialize();
+        payment.setId(UUID.randomUUID());
 
         PaymentEntity paymentEntity = PaymentMapper.toEntity(payment);
         paymentRepository.save(paymentEntity);
         log.info("Payment saved with id {}", paymentEntity.getId());
-        payment.setId(paymentEntity.getId());
 
         PaymentCreatedEvent createdEvent = PaymentCreatedEvent.builder()
                 .eventId(UUID.randomUUID())
