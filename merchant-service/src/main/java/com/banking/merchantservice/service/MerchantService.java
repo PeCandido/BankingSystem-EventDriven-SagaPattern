@@ -7,10 +7,10 @@ import com.banking.merchantservice.model.Merchant;
 import com.banking.merchantservice.model.MerchantEntity;
 import com.banking.merchantservice.repository.MerchantRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -19,6 +19,7 @@ import java.util.UUID;
 @Slf4j
 public class MerchantService {
     private final MerchantRepository merchantRepository;
+    private final MerchantEventStore merchantEventStore;
     private final EntityManager entityManager;
 
     @Transactional
@@ -39,8 +40,12 @@ public class MerchantService {
         }
 
         MerchantEntity merchantEntity = MerchantMapper.toEntity(merchant);
-
         entityManager.persist(merchantEntity);
+
+        merchantEventStore.saveMerchantRegisteredEvent(
+                merchantEntity.getId(),
+                request.initialBalance()
+        );
 
         log.info("Merchant registered successfully with id: {}", merchantEntity.getId());
         return MerchantMapper.toDomain(merchantEntity);
@@ -67,6 +72,7 @@ public class MerchantService {
                 .orElseThrow(() -> new MerchantNotFoundException("Merchant not found with phone: " + phone));
     }
 
+    @Transactional
     public void processReceivedPayment(UUID payeeId, java.math.BigDecimal amount) {
         log.info("Processing received payment for merchant: {}, amount: {}", payeeId, amount);
 
@@ -77,6 +83,13 @@ public class MerchantService {
         merchant.receivePayment(amount);
 
         MerchantEntity updated = merchantRepository.save(MerchantMapper.toEntity(merchant));
+
+        merchantEventStore.savePaymentReceivedEvent(
+                payeeId,
+                amount,
+                updated.getBalance()
+        );
+
         log.info("Payment processed successfully. New balance: {}", updated.getBalance());
     }
 }
