@@ -7,11 +7,11 @@ import com.banking.payment.mapper.PaymentMapper;
 import com.banking.payment.model.Payment;
 import com.banking.payment.model.PaymentEntity;
 import com.banking.payment.repository.PaymentRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -21,10 +21,11 @@ import java.util.UUID;
 @Slf4j
 public class PaymentService {
     private final PaymentRepository paymentRepository;
+    private final PaymentEventStore paymentEventStore;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
-    public void createPayment(PaymentDto request) {
+    public UUID createPayment(PaymentDto request) {
         Payment payment = new Payment(
                 null,
                 request.payerId(),
@@ -41,6 +42,15 @@ public class PaymentService {
         paymentRepository.save(paymentEntity);
         log.info("Payment saved with id {}", paymentEntity.getId());
 
+        paymentEventStore.savePaymentCreatedEvent(
+                paymentEntity.getId(),
+                payment.getPayerId(),
+                payment.getPayeeId(),
+                payment.getAmount(),
+                payment.getCurrency(),
+                payment.getStatus()
+        );
+
         PaymentCreatedEvent createdEvent = PaymentCreatedEvent.builder()
                 .eventId(UUID.randomUUID())
                 .eventDateTime(LocalDateTime.now())
@@ -54,5 +64,7 @@ public class PaymentService {
 
         kafkaTemplate.send("payment-events", payment.getId().toString(), createdEvent);
         log.info("Event sent to Kafka: {}", createdEvent);
+
+        return payment.getId();
     }
 }
