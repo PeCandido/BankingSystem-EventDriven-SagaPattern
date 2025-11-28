@@ -2,12 +2,15 @@ package com.banking.merchantservice.controller;
 
 import com.banking.merchantservice.controller.dto.MerchantDto;
 import com.banking.merchantservice.model.Merchant;
+import com.banking.merchantservice.model.MerchantEventEntity;  // ✅ Novo import
 import com.banking.merchantservice.service.MerchantService;
+import com.banking.merchantservice.service.MerchantEventStore;  // ✅ Novo import
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;  // ✅ Novo import
 import java.util.UUID;
 
 @RestController
@@ -15,6 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MerchantController {
     private final MerchantService merchantService;
+    private final MerchantEventStore merchantEventStore;
 
     @PostMapping
     public ResponseEntity<Merchant> registerMerchant(@RequestBody MerchantDto request) {
@@ -38,5 +42,11 @@ public class MerchantController {
     public ResponseEntity<Merchant> getMerchantByPhone(@PathVariable String phone) {
         Merchant merchant = merchantService.getMerchantByPhone(phone);
         return ResponseEntity.ok(merchant);
+    }
+
+    @GetMapping("/{merchantId}/events")
+    public ResponseEntity<List<MerchantEventEntity>> getMerchantHistory(@PathVariable UUID merchantId) {
+        List<MerchantEventEntity> events = merchantEventStore.getMerchantHistory(merchantId);
+        return ResponseEntity.ok(events);
     }
 }
