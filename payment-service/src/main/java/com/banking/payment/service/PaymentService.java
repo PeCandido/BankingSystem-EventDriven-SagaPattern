@@ -1,8 +1,9 @@
 package com.banking.payment.service;
 
-import com.banking.core.enums.PaymentStatus;
 import com.banking.core.event.PaymentCreatedEvent;
+import com.banking.payment.controller.dto.PaymentDetailsDto;
 import com.banking.payment.controller.dto.PaymentDto;
+import com.banking.payment.exception.PaymentNotFoundException;
 import com.banking.payment.mapper.PaymentMapper;
 import com.banking.payment.model.Payment;
 import com.banking.payment.model.PaymentEntity;
@@ -14,7 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,5 +69,46 @@ public class PaymentService {
         log.info("Event sent to Kafka: {}", createdEvent);
 
         return payment.getId();
+    }
+
+    public PaymentDetailsDto getPaymentById(UUID id) {
+        return paymentRepository.findById(id)
+                .map(PaymentDetailsDto::fromEntity)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment with id " + id + " not found"));
+    }
+
+    public List<PaymentDetailsDto> getPaymentsByPayer(UUID payerId) {
+        return paymentRepository.findAll().stream()
+                .filter(p -> p.getPayerId().equals(payerId))
+                .map(PaymentDetailsDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void approvedPayment(UUID id) {
+        PaymentEntity entity = paymentRepository.findById(id)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+
+        Payment payment = PaymentMapper.toDomain(entity);
+        payment.approve();
+
+        entity.setStatus(payment.getStatus());
+        paymentRepository.save(entity);
+
+        log.info("Payment APPROVED with id {}", payment.getId());
+    }
+
+    @Transactional
+    public void rejectPayment(UUID id) {
+        PaymentEntity entity = paymentRepository.findById(id)
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+
+        Payment payment = PaymentMapper.toDomain(entity);
+        payment.reject();
+
+        entity.setStatus(payment.getStatus());
+        paymentRepository.save(entity);
+
+        log.info("Payment REJECTED with id {}", payment.getId());
     }
 }
