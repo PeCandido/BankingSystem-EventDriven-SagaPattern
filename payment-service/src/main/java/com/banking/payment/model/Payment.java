@@ -14,6 +14,7 @@ public class Payment {
 
     private UUID id;
     private UUID payerId;
+    private String payerEmail;
     private UUID payeeId;
     private BigDecimal amount;
     private String currency;

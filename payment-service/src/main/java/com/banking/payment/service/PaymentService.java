@@ -32,6 +32,7 @@ public class PaymentService {
         Payment payment = new Payment(
                 null,
                 request.payerId(),
+                request.payerEmail(),
                 request.payeeId(),
                 request.amount(),
                 request.currency(),
@@ -63,6 +64,7 @@ public class PaymentService {
                 .amount(payment.getAmount())
                 .currency(payment.getCurrency())
                 .status(payment.getStatus())
+                .payerEmail(payment.getPayerEmail())
                 .build();
 
         kafkaTemplate.send("payment-events", payment.getId().toString(), createdEvent);

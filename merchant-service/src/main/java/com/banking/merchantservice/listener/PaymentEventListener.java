@@ -42,7 +42,7 @@ public class PaymentEventListener {
                     .eventDateTime(LocalDateTime.now())
                     .paymentId(event.getPaymentId())
                     .payerId(event.getPayerId())
-                    .payerEmail("")
+                    .payerEmail(event.getPayerEmail())
                     .status(PaymentStatus.APPROVED)
                     .description("Payment successfully processed by the merchant.")
                     .build();

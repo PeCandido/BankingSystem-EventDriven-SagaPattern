@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record PaymentDto(
         UUID payerId,
+        String payerEmail,
         UUID payeeId,
         BigDecimal amount,
         String currency

@@ -18,6 +18,7 @@ import java.util.UUID;
 public class PaymentCreatedEvent extends BaseEvent{
     private UUID paymentId;
     private UUID payerId;
+    private String payerEmail;
     private UUID payeeId;
     private BigDecimal amount;
     private String currency;
