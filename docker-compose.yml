@@ -9,9 +9,9 @@ services:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
@@ -49,7 +49,7 @@ services:
       - "2181:2181"
 
   kafka:
-    image: confluentinc/cp-kafka:7.5.0-ubi9
+    image: confluentinc/cp-kafka:7.5.0
     container_name: bank-kafka
     depends_on:
       - zookeeper
@@ -64,13 +64,13 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   kafka-topics-init:
-    image: confluentinc/cp-kafka:7.5.0-ubi9
+    image: confluentinc/cp-kafka:7.5.0
     container_name: kafka-topics-init
     depends_on:
       kafka:
@@ -95,6 +95,63 @@ services:
     environment:
       KAFKA_BROKERCONNECT: kafka:29092
       JVM_OPTS: "-Xms32M -Xmx64M"
+
+  payment-service:
+    build:
+      context: .
+      args:
+        MODULE_NAME: payment-service
+    container_name: payment-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=bank_user
+      - SPRING_DATASOURCE_PASSWORD=bank_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  merchant-service:
+    build:
+      context: .
+      args:
+        MODULE_NAME: merchant-service
+    container_name: merchant-service
+    ports:
+      - "8082:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=bank_user
+      - SPRING_DATASOURCE_PASSWORD=bank_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  notification-service:
+    build:
+      context: .
+      args:
+        MODULE_NAME: notification-service
+    container_name: notification-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/bank_db
+      - SPRING_DATASOURCE_USERNAME=bank_user
+      - SPRING_DATASOURCE_PASSWORD=bank_password
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
 
 volumes:
   postgres_data:
