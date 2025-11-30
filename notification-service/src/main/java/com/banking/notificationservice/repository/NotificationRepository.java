@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface NotifiationRepository  extends JpaRepository<NotificationEntity, UUID> {
+public interface NotificationRepository extends JpaRepository<NotificationEntity, UUID> {
 }
