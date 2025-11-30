@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -30,7 +29,5 @@ public class NotificationEntity {
     @Column(columnDefinition = "TEXT")
     private String content;
     private LocalDateTime sentAt;
-
-
 
 }
