@@ -2,6 +2,7 @@ package com.banking.notificationservice.service;
 
 import com.banking.core.event.PaymentProcessedEvent;
 import com.banking.notificationservice.model.NotificationEntity;
+import com.banking.notificationservice.notifier.EmailNotifier;
 import com.banking.notificationservice.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,33 +16,36 @@ import java.time.LocalDateTime;
 public class NotificationService {
 
     public final NotificationRepository notificationRepository;
+    private final EmailNotifier emailNotifier;
 
     public void notifyPaymentProcessed( PaymentProcessedEvent event ) {
 
-        String subject = "Payment updates: " + event.getStatus();
+        String toEmail = event.getPayerEmail();
+        if( toEmail == null ) {
+            toEmail = "admin@banking.com";
+        }
+
+        String subject = "Payment update: " + event.getStatus();
         String content = String.format(
-                "Hi, your payment %s has been %s. Details: %s",
+                "Hi %s, \n\nYour payment ID %s has been processed. \nStatus: %s\nReason: %s",
+                event.getPayerEmail(),
                 event.getPaymentId(),
                 event.getStatus(),
                 event.getDescription()
         );
 
-        log.info("==================================");
-        log.info("[EMAIL SENT] To: {}", event.getPayerEmail());
-        log.info("Subject: {}", subject);
-        log.info("Content: {}", content);
-        log.info("==================================");
+        emailNotifier.send(toEmail, subject, content);
 
         NotificationEntity notificationEntity = NotificationEntity.builder()
                 .paymentId(event.getPaymentId())
-                .recipientEmail(event.getPayerEmail())
+                .recipientEmail(toEmail)
                 .subject(subject)
                 .content(content)
                 .sentAt(LocalDateTime.now())
                 .build();
 
         notificationRepository.save(notificationEntity);
-
+        log.info("Notification saved");
     }
 
 }
