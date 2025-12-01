@@ -1,42 +1,24 @@
+server:
+  port: 8082
 spring:
   application:
     name: merchant-service
-
   datasource:
-    url: jdbc:postgresql://localhost:5432/bank_db
+    url: jdbc:postgresql://localhost:5433/bank_db
     username: bank_user
     password: bank_password
-    driver-class-name: org.postgresql.Driver
-
   jpa:
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-    show-sql: false
-
   kafka:
     bootstrap-servers: localhost:9092
-
     consumer:
       group-id: merchant-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: com.banking.core.event
-        spring.json.type.mapping: paymentCreatedEvent:com.banking.core.event.PaymentCreatedEvent
-
+        spring.json.trusted.packages: "*"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
-server:
-  port: 8083
-
-logging:
-  level:
-    root: INFO
-    com.banking: DEBUG
