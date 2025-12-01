@@ -3,6 +3,17 @@ server:
 spring:
   application:
     name: notification-service
+  mail:
+    host: sandbox.smtp.mailtrap.io
+    port: 2525
+    username: 5c91f91ec29d19
+    password: 9a00d4e8602d0e
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   datasource:
     url: jdbc:postgresql://localhost:5433/bank_db
     username: bank_user
