@@ -12,11 +12,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@KafkaListener(topics = "payments-events", groupId = "payment-service-group")
 public class PaymentResponseListener {
     private final PaymentService paymentService;
 
-    @KafkaHandler
+    @KafkaListener(topics = "payment-processed", groupId = "payment-service-group")
     public void handlePaymentProcessed(PaymentProcessedEvent event) {
         log.info("Processed payment event: {}", event);
 
@@ -25,7 +24,7 @@ public class PaymentResponseListener {
         else paymentService.rejectPayment(event.getPaymentId());
     }
 
-    @KafkaHandler
+    @KafkaHandler(isDefault = true)
     public void ignoreUnknownEvents(Object event) {}
 
 }

@@ -21,6 +21,7 @@ public class PaymentMapper {
         return new Payment(
                 entity.getId(),
                 entity.getPayerId(),
+                entity.getPayerEmail(),
                 entity.getPayeeId(),
                 entity.getAmount(),
                 entity.getCurrency(),

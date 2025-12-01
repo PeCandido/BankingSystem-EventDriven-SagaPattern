@@ -21,7 +21,7 @@ public class PaymentEventListener {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @KafkaListener(
-            topics = "payment-events",
+            topics = "payment-created",
             groupId = "merchant-service-group",
             containerFactory = "kafkaListenerContainerFactory"
     )
@@ -47,8 +47,8 @@ public class PaymentEventListener {
                     .description("Payment successfully processed by the merchant.")
                     .build();
 
-            kafkaTemplate.send("payment-events", event.getPaymentId().toString(), responseEvent);
-            log.info("Payment processed successfully for merchant: {}", responseEvent);
+            kafkaTemplate.send("payment-processed", event.getPaymentId().toString(), responseEvent);
+            log.info("Sent APPROVED event to 'payment-processed': {}", responseEvent);
 
         } catch (RuntimeException e) {
             log.error("Error processing payment event: {}", e.getMessage(), e);
@@ -59,10 +59,10 @@ public class PaymentEventListener {
                     .paymentId(event.getPaymentId())
                     .payerId(event.getPayerId())
                     .status(PaymentStatus.REJECTED)
-                    .description("Falha no processamento: " + e.getMessage())
+                    .description("Failed: " + e.getMessage())
                     .build();
 
-            kafkaTemplate.send("payment-events", event.getPaymentId().toString(), errorEvent);
+            kafkaTemplate.send("payment-processed", event.getPaymentId().toString(), errorEvent);
         }
     }
 }

@@ -11,12 +11,11 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 @Slf4j
-@KafkaListener(topics = "payment-events", groupId = "notification-group")
 public class NotificationConsumer {
 
     private final NotificationService notificationService;
 
-    @KafkaHandler
+    @KafkaListener(topics = "payment-processed", groupId = "notification-group")
     public void handlePaymentProcessed( PaymentProcessedEvent event ) {
         log.info("Received payment processed event: {}", event);
         notificationService.notifyPaymentProcessed(event);

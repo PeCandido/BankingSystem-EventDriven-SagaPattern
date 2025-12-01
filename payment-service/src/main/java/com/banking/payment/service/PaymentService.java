@@ -67,8 +67,8 @@ public class PaymentService {
                 .payerEmail(payment.getPayerEmail())
                 .build();
 
-        kafkaTemplate.send("payment-events", payment.getId().toString(), createdEvent);
-        log.info("Event sent to Kafka: {}", createdEvent);
+        kafkaTemplate.send("payment-created", payment.getId().toString(), createdEvent);
+        log.info("Event sent to Kafka topic 'payment-created': {}", createdEvent);
 
         return payment.getId();
     }
