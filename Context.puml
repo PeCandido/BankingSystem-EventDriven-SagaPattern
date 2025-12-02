@@ -1,0 +1,16 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+SHOW_PERSON_OUTLINE()
+
+Person(payer, "Payer (Pagador)", "Cliente que inicia uma transação de pagamento e deseja ser notificado.")
+System_Ext(smtp_server, "External SMTP Server", "Serviço de terceiros (ex: SendGrid, Gmail) usado para enviar e-mails transacionais.")
+System(banking_system, "Banking System", "Orquestra o processamento de pagamentos, validação de lojistas e notificações usando uma arquitetura de microsserviços baseada em eventos (Saga, Kafka).")
+
+Rel(payer, banking_system, "Inicia pagamentos e consulta status")
+Rel(banking_system, smtp_server, "Envia solicitações de e-mail usando")
+Rel(smtp_server, payer, "Entrega e-mail de notificação")
+
+SHOW_LEGEND()
+
+@enduml
