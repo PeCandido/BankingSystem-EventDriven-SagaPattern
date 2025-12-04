@@ -93,4 +93,12 @@ public class PaymentEventStore {
     public List<PaymentEventEntity> getPaymentHistory(UUID paymentId) {
         return paymentEventRepository.findByPaymentId(paymentId);
     }
+
+    public List<PaymentEventEntity> getPayerPaymentHistory(UUID payerId) {
+        return paymentEventRepository.findByPayerId(payerId);
+    }
+
+    public List<PaymentEventEntity> getPayeePaymentHistory(UUID payeeId) {
+        return paymentEventRepository.findByPayeeId(payeeId);
+    }
 }
