@@ -9,4 +9,4 @@ public record PaymentDto(
         UUID payeeId,
         BigDecimal amount,
         String currency
-){}
+) {}
