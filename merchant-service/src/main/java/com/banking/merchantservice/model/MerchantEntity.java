@@ -18,6 +18,7 @@ import java.util.UUID;
 public class MerchantEntity {
 
     @Id
+    @GeneratedValue
     private UUID id;
 
     @Column(nullable = false, unique = true)
@@ -30,8 +31,8 @@ public class MerchantEntity {
     private String phone;
 
     @Column(nullable = false)
-    private BigDecimal balance;
+    private BigDecimal balance = BigDecimal.ZERO;
 
     @Column(nullable = false)
-    private String currency;
+    private String currency = "BRL";
 }
