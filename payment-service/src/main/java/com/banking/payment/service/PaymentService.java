@@ -88,8 +88,7 @@ public class PaymentService {
 
     @Transactional
     public void approvedPayment(UUID id) {
-        PaymentEntity entity = paymentRepository.findById(id)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
+        PaymentEntity entity = paymentRepository.findById(id).orElseThrow();
 
         Payment payment = PaymentMapper.toDomain(entity);
         payment.approve();
@@ -97,7 +96,7 @@ public class PaymentService {
         entity.setStatus(payment.getStatus());
         paymentRepository.save(entity);
 
-        log.info("Payment APPROVED with id {}", payment.getId());
+        paymentEventStore.savePaymentApprovedEvent(id);
     }
 
     @Transactional
