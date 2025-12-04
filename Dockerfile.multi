@@ -1,0 +1,27 @@
+# Build stage - compila tudo
+FROM maven:3.9-eclipse-temurin-21 AS builder
+WORKDIR /app
+COPY pom.xml .
+COPY core-common/ ./core-common/
+COPY payment-service/ ./payment-service/
+COPY merchant-service/ ./merchant-service/
+COPY notification-service/ ./notification-service/
+RUN mvn clean package -DskipTests
+
+# Payment stage
+FROM eclipse-temurin:21-jre-alpine AS payment-stage
+COPY --from=builder /app/payment-service/target/*.jar /app/app.jar
+EXPOSE 8081
+CMD ["java", "-jar", "/app/app.jar"]
+
+# Merchant stage
+FROM eclipse-temurin:21-jre-alpine AS merchant-stage
+COPY --from=builder /app/merchant-service/target/*.jar /app/app.jar
+EXPOSE 8082
+CMD ["java", "-jar", "/app/app.jar"]
+
+# Notification stage
+FROM eclipse-temurin:21-jre-alpine AS notification-stage
+COPY --from=builder /app/notification-service/target/*.jar /app/app.jar
+EXPOSE 8083
+CMD ["java", "-jar", "/app/app.jar"]
