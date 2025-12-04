@@ -15,9 +15,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * MerchantController - API corrigida
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/merchants")
@@ -27,9 +24,6 @@ public class MerchantController {
     private final MerchantService merchantService;
     private final MerchantEventStore merchantEventStore;
 
-    /**
-     * Registrar novo merchant
-     */
     @PostMapping
     public ResponseEntity<Merchant> registerMerchant(@RequestBody MerchantDto request) {
         log.info("📝 Registrando merchant: {}", request.email());
@@ -37,9 +31,6 @@ public class MerchantController {
         return ResponseEntity.status(HttpStatus.CREATED).body(merchant);
     }
 
-    /**
-     * Obter merchant por ID
-     */
     @GetMapping("/{merchantId}")
     public ResponseEntity<Merchant> getMerchant(@PathVariable UUID merchantId) {
         log.info("🔍 Buscando merchant: {}", merchantId);
@@ -47,31 +38,24 @@ public class MerchantController {
         return ResponseEntity.ok(merchant);
     }
 
-    /**
-     * Listar merchants
-     */
     @GetMapping
     public ResponseEntity<List<Merchant>> getAllMerchants() {
         log.info("📊 Listando merchants");
-        return ResponseEntity.ok(List.of());
+        List<Merchant> merchants = merchantService.getAllMerchants();
+        log.info("✅ {} merchants encontrados", merchants.size());
+        return ResponseEntity.ok(merchants);
     }
 
-    /**
-     * Obter saldo do merchant
-     */
     @GetMapping("/{merchantId}/balance")
     public ResponseEntity<MerchantBalance> getMerchantBalance(@PathVariable UUID merchantId) {
         log.info("💰 Saldo merchant: {}", merchantId);
         Merchant merchant = merchantService.getMerchant(merchantId);
         if (merchant != null) {
-            return ResponseEntity.ok(new MerchantBalance(merchantId, merchant.getBalance().doubleValue()));  // ✅ BigDecimal → Double
+            return ResponseEntity.ok(new MerchantBalance(merchantId, merchant.getBalance().doubleValue()));
         }
         return ResponseEntity.notFound().build();
     }
 
-    /**
-     * Histórico de eventos
-     */
     @GetMapping("/{merchantId}/events")
     public ResponseEntity<List<MerchantEventEntity>> getMerchantHistory(@PathVariable UUID merchantId) {
         log.info("📜 Histórico merchant: {}", merchantId);
@@ -79,9 +63,19 @@ public class MerchantController {
         return ResponseEntity.ok(events);
     }
 
-    /**
-     * DTO para saldo
-     */
+    @PostMapping("/{merchantId}/debit")
+    public ResponseEntity<Void> debitMerchant(@PathVariable UUID merchantId, @RequestBody DebitRequest request) {
+        log.info("💳 Debitando merchant: {}, amount: {}", merchantId, request.getAmount());
+        merchantService.debitPayer(merchantId, request.getAmount());
+        return ResponseEntity.ok().build();
+    }
+
+    @lombok.Data
+    @lombok.AllArgsConstructor
+    public static class DebitRequest {
+        private BigDecimal amount;
+    }
+
     @lombok.Data
     @lombok.AllArgsConstructor
     public static class MerchantBalance {
