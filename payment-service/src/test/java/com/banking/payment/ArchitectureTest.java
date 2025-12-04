@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
@@ -129,4 +130,12 @@ public class ArchitectureTest {
 
     @ArchTest
     static final ArchRule no_java_util_logging = GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
+
+    @ArchTest
+    static final ArchRule events_must_not_depend_on_entities =
+            noClasses()
+                    .that().resideInAPackage("..event..")
+                    .should().dependOnClassesThat(annotatedWith(Entity.class))
+                    .allowEmptyShould(true)
+                    .because("Events must be decoupled from persistence entities to ensure schema evolution independence.");
 }

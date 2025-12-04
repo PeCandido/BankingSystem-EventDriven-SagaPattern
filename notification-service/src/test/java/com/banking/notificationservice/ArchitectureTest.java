@@ -7,6 +7,7 @@ import com.tngtech.archunit.library.GeneralCodingRules;
 import jakarta.persistence.Entity;
 import org.springframework.stereotype.Service;
 
+import static com.tngtech.archunit.core.domain.properties.CanBeAnnotated.Predicates.annotatedWith;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.*;
 import static com.tngtech.archunit.library.Architectures.layeredArchitecture;
 import static com.tngtech.archunit.library.dependencies.SlicesRuleDefinition.slices;
@@ -97,4 +98,11 @@ public class ArchitectureTest {
                     .orShould().dependOnClassesThat().haveFullyQualifiedName("java.sql.Date")
                     .because("Use java.time (LocalDateTime) instead of java.util.Date");
 
+    @ArchTest
+    static final ArchRule events_must_not_depend_on_entities =
+            noClasses()
+                    .that().resideInAPackage("..event..")
+                    .should().dependOnClassesThat(annotatedWith(Entity.class))
+                    .allowEmptyShould(true)
+                    .because("Events must be decoupled from persistence entities to ensure schema evolution independence.");
 }
