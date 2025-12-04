@@ -27,6 +27,17 @@ public class Merchant {
         this.balance = this.balance.add(amount);
     }
 
+    public void debitPayment(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Amount must be greater than zero");
+        }
+        if (this.balance == null || this.balance.compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient balance");
+        }
+        this.balance = this.balance.subtract(amount);
+    }
+
+
     public void initialize(BigDecimal initialBalance) {
         this.id = UUID.randomUUID();
         this.balance = initialBalance;
