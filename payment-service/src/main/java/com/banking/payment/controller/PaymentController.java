@@ -26,35 +26,35 @@ public class PaymentController {
 
     @PostMapping
     public ResponseEntity<PaymentResponseDto> createPayment(@RequestBody PaymentDto request) {
-        log.info("💳 Criando novo pagamento: amount={}, payerId={}", request.amount(), request.payerId());
+        log.info("💳 POST /payments - Criando pagamento");
         UUID paymentId = paymentService.createPayment(request);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(
-                new PaymentResponseDto(paymentId, "Payment being processed")
+                new PaymentResponseDto(paymentId, "Payment being processed by SAGA")
         );
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PaymentDetailsDto> getPayment(@PathVariable UUID id) {
-        log.info("🔍 Buscando pagamento: {}", id);
+        log.info("🔍 GET /payments/{} - Buscando pagamento", id);
         PaymentDetailsDto payment = paymentService.getPaymentById(id);
-        if (payment != null) {
-            return ResponseEntity.ok(payment);
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        return ResponseEntity.ok(payment);
     }
 
     @GetMapping
     public ResponseEntity<List<PaymentDetailsDto>> getPayments(
             @RequestParam(required = false) UUID payerId
     ) {
-        log.info("📊 Listando pagamentos - payerId={}", payerId);
+        log.info("📊 GET /payments - Listando pagamentos");
 
-        return ResponseEntity.ok(List.of());
+        if (payerId != null) {
+            return ResponseEntity.ok(paymentService.getPaymentsByPayer(payerId));
+        }
+        return ResponseEntity.ok(paymentService.getAllPayments());
     }
 
     @GetMapping("/{paymentId}/events")
     public ResponseEntity<List<PaymentEventEntity>> getPaymentHistory(@PathVariable UUID paymentId) {
-        log.info("📜 Obtendo histórico SAGA do pagamento: {}", paymentId);
+        log.info("📜 GET /payments/{}/events - Obtendo histórico SAGA", paymentId);
         List<PaymentEventEntity> events = paymentEventStore.getPaymentHistory(paymentId);
         return ResponseEntity.ok(events);
     }
