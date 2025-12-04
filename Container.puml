@@ -1,0 +1,41 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+SHOW_PERSON_OUTLINE()
+
+title Diagrama de Contêiner - Banking System (Saga Pattern)
+
+Person(payer, "Payer (Pagador)", "Cliente do banco querendo realizar um pagamento")
+System_Ext(smtp, "SMTP Server", "Servidor de E-mail externo (ex: Gmail/AWS).")
+
+System_Boundary(banking_system, "Banking System Boundary") {
+    ContainerDb(kafka, "Apache Kafka", "Contêiner: Broker de eventos Apache Kafka", "Gerencia os eventos de cada serviço")
+
+    ContainerDb(postgres, "PostgreSQL", "Contêiner: Banco de Dados PostgreSQL", "Armazena tabelas de Payment, Merchant e Logs de Eventos.")
+
+    Container(payment_svc, "Payment Service", "Contêiner: Java 21 e Spring Boot", "API de entrada. Gerencia estado do pagamento, cria evento e inicia a Saga.", $tags="microservice")
+
+    Container(merchant_svc, "Merchant Service", "Contêiner: Java 21 e Spring Boot", "Valida a existência do lojista e aprova/rejeita a transação.", $tags="microservice")
+
+    Container(notif_svc, "Notification Service", "Contêiner: Java 21 e Spring Boot", "Escuta o resultado da transação e notifica o usuário.", $tags="microservice")
+}
+
+Rel(payer, payment_svc, "Cria pagamento com POST /payments", "HTTP")
+
+Rel(payment_svc, postgres, "Persiste pagamento pendente (PENDING) e Evento", "JDBC")
+Rel(payment_svc, kafka, "Publica evento de criação de pagamento", "Kafka Producer")
+
+Rel(kafka, merchant_svc, "Consome evento de criação de pagamento", "Kafka Consumer")
+Rel(merchant_svc, postgres, "Consulta Lojista", "JDBC")
+Rel(merchant_svc, kafka, "Publica evento de processamento de pagamento (Approved/Rejected)", "Kafka Producer")
+
+Rel(kafka, payment_svc, "Consome resposta e atualiza Status", "Kafka Listener")
+Rel(payment_svc, postgres, "Atualiza status final", "JDBC")
+
+Rel(kafka, notif_svc, "Consome evento de processamento de pagamento", "Kafka Consumer")
+Rel(notif_svc, smtp, "Envia E-mail", "SMTP")
+Rel(notif_svc, postgres, "Registra envio", "JDBC")
+
+SHOW_LEGEND()
+
+@enduml

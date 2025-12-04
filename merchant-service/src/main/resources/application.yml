@@ -9,7 +9,8 @@ spring:
     password: bank_password
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
+    show-sql: false
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -22,3 +23,8 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+kafka:
+  topics:
+    merchant-events: merchant-events
+  brokers: localhost:9092

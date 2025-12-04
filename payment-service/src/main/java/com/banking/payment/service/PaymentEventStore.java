@@ -45,6 +45,35 @@ public class PaymentEventStore {
         log.info("Payment event saved: paymentId={}, eventType={}", paymentId, event.getEventType());
     }
 
+    @Transactional
+    public void savePaymentApprovedEvent(UUID paymentId) {
+        PaymentEventEntity event = PaymentEventEntity.builder()
+                .id(UUID.randomUUID())
+                .paymentId(paymentId)
+                .status(PaymentStatus.APPROVED)
+                .eventType("PAYMENT_APPROVED")
+                .eventDateTime(LocalDateTime.now())
+                .build();
+
+        paymentEventRepository.save(event);
+        log.info("Payment APPROVED event saved: paymentId={}", paymentId);
+    }
+
+    @Transactional
+    public void savePaymentRejectedEvent(UUID paymentId) {
+        PaymentEventEntity event = PaymentEventEntity.builder()
+                .id(UUID.randomUUID())
+                .paymentId(paymentId)
+                .status(PaymentStatus.REJECTED)
+                .eventType("PAYMENT_REJECTED")
+                .eventDateTime(LocalDateTime.now())
+                .build();
+
+        paymentEventRepository.save(event);
+        log.info("Payment REJECTED event saved: paymentId={}", paymentId);
+    }
+
+
     public List<PaymentEventEntity> getPaymentHistory(UUID paymentId) {
         return paymentEventRepository.findByPaymentId(paymentId);
     }

@@ -3,6 +3,8 @@
 
 SHOW_PERSON_OUTLINE()
 
+title Diagrama de Contexto - Banking System
+
 Person(payer, "Payer (Pagador)", "Cliente que inicia uma transação de pagamento e deseja ser notificado.")
 System_Ext(smtp_server, "External SMTP Server", "Serviço de terceiros (ex: SendGrid, Gmail) usado para enviar e-mails transacionais.")
 System(banking_system, "Banking System", "Orquestra o processamento de pagamentos, validação de lojistas e notificações usando uma arquitetura de microsserviços baseada em eventos (Saga, Kafka).")
