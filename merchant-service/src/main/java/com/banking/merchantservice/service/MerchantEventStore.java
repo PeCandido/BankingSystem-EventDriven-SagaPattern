@@ -59,6 +59,23 @@ public class MerchantEventStore {
                 merchantId, amount, newBalance);
     }
 
+    @Transactional
+    public void savePaymentDebitedEvent(UUID merchantId, BigDecimal amountChange, BigDecimal newBalance) {
+        MerchantEventEntity event = MerchantEventEntity.builder()
+                .id(UUID.randomUUID())
+                .merchantId(merchantId)
+                .balanceChange(amountChange)
+                .newBalance(newBalance)
+                .eventType("PAYMENT_DEBITED")
+                .description("Payment debited from payer account")
+                .eventDateTime(LocalDateTime.now())
+                .build();
+
+        merchantEventRepository.save(event);
+        log.info("Payment debited event saved: merchantId={}, amount={}, newBalance={}",
+                merchantId, amountChange, newBalance);
+    }
+
     public List<MerchantEventEntity> getMerchantHistory(UUID merchantId) {
         return merchantEventRepository.findByMerchantId(merchantId);
     }
