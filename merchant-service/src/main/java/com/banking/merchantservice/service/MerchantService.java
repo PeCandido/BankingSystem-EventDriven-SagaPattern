@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Service
@@ -26,30 +27,23 @@ public class MerchantService {
     public Merchant registerMerchant(MerchantDto request) {
         log.info("Registering new merchant: {}", request.name());
 
-        Merchant merchant = new Merchant(
-                request.merchantId(),
-                request.name(),
-                request.email(),
-                request.phone(),
-                request.initialBalance(),
-                request.currency()
-        );
-
-        if (merchant.getId() == null) {
-            merchant.initialize(request.initialBalance());
-        }
+        Merchant merchant = Merchant.builder()
+                .id(UUID.randomUUID())
+                .name(request.name())
+                .email(request.email())
+                .phone(request.phone())
+                .balance(request.initialBalance() != null ? request.initialBalance() : BigDecimal.ZERO)
+                .currency(request.currency() != null ? request.currency() : "BRL")
+                .build();
 
         MerchantEntity merchantEntity = MerchantMapper.toEntity(merchant);
-        entityManager.persist(merchantEntity);
+        merchantEntity = merchantRepository.save(merchantEntity);
 
-        merchantEventStore.saveMerchantRegisteredEvent(
-                merchantEntity.getId(),
-                request.initialBalance()
-        );
+        merchantEventStore.saveMerchantRegisteredEvent(merchantEntity.getId(), merchantEntity.getBalance());
 
-        log.info("Merchant registered successfully with id: {}", merchantEntity.getId());
         return MerchantMapper.toDomain(merchantEntity);
     }
+
 
     public Merchant getMerchant(UUID merchantId) {
         log.info("Fetching merchant with id: {}", merchantId);
