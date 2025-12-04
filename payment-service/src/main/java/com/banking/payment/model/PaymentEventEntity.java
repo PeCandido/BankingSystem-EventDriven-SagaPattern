@@ -42,7 +42,7 @@ public class PaymentEventEntity {
     private PaymentStatus status;
 
     @Column(name = "event_type", nullable = false)
-    private String eventType; // Ex: "PAYMENT_CREATED", "PAYMENT_APPROVED"
+    private String eventType;
 
     @Column(nullable = false, columnDefinition = "TIMESTAMP")
     private LocalDateTime eventDateTime;
