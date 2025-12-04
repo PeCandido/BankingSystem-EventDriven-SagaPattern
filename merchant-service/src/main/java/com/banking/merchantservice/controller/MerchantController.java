@@ -1,6 +1,6 @@
 package com.banking.merchantservice.controller;
 
-import com.banking.merchantservice.controller.dto.MerchantDto;
+import com.banking.merchantservice.dto.MerchantDto;
 import com.banking.merchantservice.model.Merchant;
 import com.banking.merchantservice.model.MerchantEventEntity;
 import com.banking.merchantservice.service.MerchantService;
@@ -11,7 +11,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 

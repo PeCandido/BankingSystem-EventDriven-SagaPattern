@@ -1,6 +1,6 @@
 package com.banking.merchantservice.service;
 
-import com.banking.merchantservice.controller.dto.MerchantDto;
+import com.banking.merchantservice.dto.MerchantDto;
 import com.banking.merchantservice.exception.MerchantNotFoundException;
 import com.banking.merchantservice.mapper.MerchantMapper;
 import com.banking.merchantservice.model.Merchant;
