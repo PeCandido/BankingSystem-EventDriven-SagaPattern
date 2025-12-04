@@ -27,8 +27,7 @@ public class MerchantService {
     public Merchant registerMerchant(MerchantDto request) {
         log.info("Registering new merchant: {}", request.name());
 
-        Merchant merchant = Merchant.builder()
-                .id(UUID.randomUUID())
+        MerchantEntity merchantEntity = MerchantEntity.builder()
                 .name(request.name())
                 .email(request.email())
                 .phone(request.phone())
@@ -36,7 +35,6 @@ public class MerchantService {
                 .currency(request.currency() != null ? request.currency() : "BRL")
                 .build();
 
-        MerchantEntity merchantEntity = MerchantMapper.toEntity(merchant);
         merchantEntity = merchantRepository.save(merchantEntity);
 
         merchantEventStore.saveMerchantRegisteredEvent(merchantEntity.getId(), merchantEntity.getBalance());
