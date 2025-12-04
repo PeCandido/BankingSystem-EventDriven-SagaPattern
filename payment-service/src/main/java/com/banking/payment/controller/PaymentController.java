@@ -1,8 +1,8 @@
 package com.banking.payment.controller;
 
-import com.banking.payment.controller.dto.PaymentDetailsDto;
-import com.banking.payment.controller.dto.PaymentDto;
-import com.banking.payment.controller.dto.PaymentResponseDto;
+import com.banking.payment.dto.PaymentDetailsDto;
+import com.banking.payment.dto.PaymentDto;
+import com.banking.payment.dto.PaymentResponseDto;
 import com.banking.payment.model.PaymentEventEntity;
 import com.banking.payment.service.PaymentService;
 import com.banking.payment.service.PaymentEventStore;

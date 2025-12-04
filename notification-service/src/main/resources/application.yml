@@ -4,10 +4,10 @@ spring:
   application:
     name: notification-service
   mail:
-    host: sandbox.smtp.mailtrap.io
-    port: 2525
-    username: 5c91f91ec29d19
-    password: 9a00d4e8602d0e
+    host: smtp.gmail.com
+    port: 587
+    username: minibanksystem4@gmail.com
+    password: teci issg yqve hdpo
     properties:
       mail:
         smtp:
