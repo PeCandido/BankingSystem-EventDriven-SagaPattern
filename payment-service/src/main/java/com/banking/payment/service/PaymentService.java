@@ -25,10 +25,13 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentEventStore paymentEventStore;
+    private final PaymentSaga paymentSaga;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional
     public UUID createPayment(PaymentDto request) {
+        log.info("💳 Criando payment: {} → {}", request.payerId(), request.payeeId());
+
         Payment payment = new Payment(
                 null,
                 request.payerId(),
@@ -44,7 +47,7 @@ public class PaymentService {
 
         PaymentEntity paymentEntity = PaymentMapper.toEntity(payment);
         paymentRepository.save(paymentEntity);
-        log.info("Payment saved with id {}", paymentEntity.getId());
+        log.info("💾 Payment salvo com id: {}", paymentEntity.getId());
 
         paymentEventStore.savePaymentCreatedEvent(
                 paymentEntity.getId(),
@@ -68,26 +71,36 @@ public class PaymentService {
                 .build();
 
         kafkaTemplate.send("payment-created", payment.getId().toString(), createdEvent);
-        log.info("Event sent to Kafka topic 'payment-created': {}", createdEvent);
+        log.info("📤 Kafka event sent: payment-created");
 
         return payment.getId();
     }
 
     public PaymentDetailsDto getPaymentById(UUID id) {
+        log.info("🔍 Buscando payment: {}", id);
         return paymentRepository.findById(id)
                 .map(PaymentDetailsDto::fromEntity)
-                .orElseThrow(() -> new PaymentNotFoundException("Payment with id " + id + " not found"));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + id));
     }
 
     public List<PaymentDetailsDto> getPaymentsByPayer(UUID payerId) {
+        log.info("📊 Pagamentos do payer: {}", payerId);
         return paymentRepository.findAll().stream()
                 .filter(p -> p.getPayerId().equals(payerId))
                 .map(PaymentDetailsDto::fromEntity)
                 .collect(Collectors.toList());
     }
 
+    public List<PaymentDetailsDto> getAllPayments() {
+        log.info("📊 Listando todos os pagamentos");
+        return paymentRepository.findAll().stream()
+                .map(PaymentDetailsDto::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
     public void approvedPayment(UUID id) {
+        log.info("✅ Aprovando payment: {}", id);
         PaymentEntity entity = paymentRepository.findById(id).orElseThrow();
 
         Payment payment = PaymentMapper.toDomain(entity);
@@ -101,6 +114,7 @@ public class PaymentService {
 
     @Transactional
     public void rejectPayment(UUID id) {
+        log.info("❌ Rejeitando payment: {}", id);
         PaymentEntity entity = paymentRepository.findById(id)
                 .orElseThrow(() -> new PaymentNotFoundException("Payment not found"));
 
@@ -110,6 +124,6 @@ public class PaymentService {
         entity.setStatus(payment.getStatus());
         paymentRepository.save(entity);
 
-        log.info("Payment REJECTED with id {}", payment.getId());
+        paymentEventStore.savePaymentRejectedEvent(id);
     }
 }
