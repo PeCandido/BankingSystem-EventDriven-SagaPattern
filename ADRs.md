@@ -31,47 +31,57 @@ derrube o fluxo crítico de pagamentos.
 Autor: Pedro Candido. Aprovado por: Alan Souza e Ana Turazzi. Última atualização: 01/12/2025
 
 
-## 2. Escolha do Saga Pattern Coreografado
+## 2. Escolha do Saga Pattern Orquestrado
 ### Status: aceita
 ### Contexto:
 O sistema BankingSystem é composto por microsserviços distribuídos 
 e independentes (payment-service, merchant-service, notification-service). 
 Um fluxo de pagamento requer a coordenação sequencial desses serviços. 
-Como cada serviço possui seu próprio banco de dados, 
-não é possível utilizar transações ACID tradicionais para garantir 
-a consistência global. É necessário um mecanismo para gerenciar 
-transações de longa duração, garantir a consistência eventual dos 
-dados e executar compensações (rollbacks) caso alguma etapa do fluxo 
-falhe.
+Como cada serviço possui seu próprio banco de dados, não é possível utilizar transações ACID 
+tradicionais para garantir a consistência global. É necessário um mecanismo para gerenciar 
+transações de longa duração, garantir a consistência eventual dos dados e executar 
+compensações (rollbacks) caso alguma etapa do fluxo falhe.
 
 ### Decisão:
-Será utilizado o padrão arquitetural Saga Coreografado (Choreography-based Saga) 
+Será utilizado o padrão arquitetural Saga Orquestrado (Orchestrated-based Saga) 
 para gerenciar as transações distribuídas entre os microsserviços, reduzindo o acoplamento entre
-serviços e integrando nativamente com a infraestrutura de broker (Apache Kafka)
+serviços e integrando nativamente com a infraestrutura de broker (Apache Kafka), assim centralizando o 
+gerenciamento e a coordenação das transações distribuídas de pagamentos criados, processados e 
+finalizados e garantindo a capacidade de recuperação em casos de falha.
 
 ### Consequências:
-A eliminação de um orquestrador central remove o ponto único de falha e o gargalo 
-de processamento. O aumento na responsabilidade de cada serviço em gerenciar 
-suas próprias transações de compensação é justificado, pois escalabilidade 
-independente é vital para evitar que o sistema pare por falha em um único 
-componente e garante a consistência eventual dos dados.
+O uso do Saga com orquestração centraliza a lógica em um único ponto de falha potencial e gera maior
+complexidade na manutenção devido à centralização. O aumento da complexidade e essa centralização
+é justificado, pois a orquestração oferece melhor visibilidade de monitoramento do fluxo do saga, 
+sendo fundamental para garantir consistência eventual dos dados e compensação (rollback) das 
+transações em casos de falha.
 
 ### Notas:
-Autor: Alan Souza e Pedro Candido. Aprovado por: Ana Turazzi. Última atualização: 02/12/2025
+Autor: Alan Souza e Pedro Candido. Aprovado por: Ana Turazzi. Última atualização: 04/12/2025
 
-## 3.
+## 3. Uso do padrão arquitetural Event-Sourcing
 ### Status: aceita
 ### Contexto:
-O sistema BankingSystem é composto por microsserviços distribuídos independentes (payment-service, merchant-service, notification-service). Um fluxo de pagamento requer coordenação sequencial desses serviços. Como cada serviço possui seu próprio banco de dados, não é possível utilizar transações ACID tradicionais para garantir consistência global. É necessário um mecanismo para gerenciar transações de longa duração, garantir consistência eventual dos dados e executar compensações (rollbacks) caso alguma etapa do fluxo falhe.
+O sistema BankingSystem é composto por microsserviços distribuídos independentes que se comunicam entre
+sí através de um broker de eventos. Entretanto, a auditoria desses eventos é fundamental, pois o 
+acompanhamento das transações bancárias realizadas entre pagador e beneficiário é de extrema importância,
+sendo necessário garantir a transparência nas operações e tornar possível a revisão de pagamentos 
+realizados anteriormente, em que cada evento realizado é persistido no sistema.
 
 ### Decisão:
-Implementar o padrão **SAGA Pattern com Coreografia** utilizando Apache Kafka como broker de eventos. Cada serviço reage independentemente a eventos publicados, formando um fluxo orquestrado implicitamente sem orquestrador central.
+Será utilizado o padrão arquitetural Event-Sourcing para persistir as mudanças de estado das 
+transações como uma sequência de eventos imutáveis, registrando cada alteração de forma incremental 
+e integrando nativamente com a infraestrutura de broker (Apache Kafka), assim viabilizando a 
+auditoria completa e a rastreabilidade das operações bancárias e garantindo a capacidade de 
+reconstrução histórica (replay) dos dados em qualquer ponto do tempo.
 
 ### Consequências:
-- **Positivas**: Eliminação de ponto único de falha, escalabilidade independente, fluxo natural de negócio, fácil adição de novos serviços
-- **Negativas**: Dificuldade para rastrear fluxo completo, compensação complexa, possível processamento fora de ordem, maior complexidade de observabilidade
+O uso do Event-Sourcing introduz maior complexidade na modelagem dos dados e exige maior 
+capacidade de armazenamento, uma vez que o estado atual deve ser reconstruído a partir 
+do histórico completo de eventos. O aumento da complexidade técnica e do volume de dados é 
+justificado, pois o padrão oferece uma trilha de auditoria imutável e à prova de violação, 
+sendo fundamental para garantir a rastreabilidade total das operações financeiras e permitir 
+a reconstrução do estado do sistema para fins de correção e análise em casos de inconsistência.
 
-### Conformidades:
-- ADR 1: Integração nativa com Apache Kafka como broker de mensagens
-- ADR 2: Complementa Saga Pattern Coreografado com implementação concreta dos eventos
-- Padrão MADR 2.1.1: Template de Architectural Decision Records
+### Notas:
+Autor: Pedro Candido. Aprovado por: Alan Souza e Ana Turazzi. Última atualização: 20/11/2025
