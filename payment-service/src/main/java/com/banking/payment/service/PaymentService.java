@@ -1,8 +1,8 @@
 package com.banking.payment.service;
 
 import com.banking.core.event.PaymentCreatedEvent;
-import com.banking.payment.controller.dto.PaymentDetailsDto;
-import com.banking.payment.controller.dto.PaymentDto;
+import com.banking.payment.dto.PaymentDetailsDto;
+import com.banking.payment.dto.PaymentDto;
 import com.banking.payment.exception.PaymentNotFoundException;
 import com.banking.payment.mapper.PaymentMapper;
 import com.banking.payment.model.Payment;

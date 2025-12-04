@@ -1,4 +1,4 @@
-package com.banking.payment.controller.dto;
+package com.banking.payment.dto;
 
 import com.banking.core.enums.PaymentStatus;
 import com.banking.payment.model.PaymentEntity;
