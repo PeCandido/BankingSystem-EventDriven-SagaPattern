@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentEventStore paymentEventStore;
-    private final PaymentSaga paymentSaga;
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Transactional

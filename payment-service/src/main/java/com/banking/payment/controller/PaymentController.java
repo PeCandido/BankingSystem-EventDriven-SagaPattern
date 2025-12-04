@@ -58,4 +58,18 @@ public class PaymentController {
         List<PaymentEventEntity> events = paymentEventStore.getPaymentHistory(paymentId);
         return ResponseEntity.ok(events);
     }
+
+    @GetMapping("/{payerId}/events")
+    public ResponseEntity<List<PaymentEventEntity>> getPaymentHistoryByPayer(@PathVariable UUID payerId) {
+        log.info("📜 GET /payments/{}/events - Obtendo histórico SAGA de pagamentos do pagador", payerId);
+        List<PaymentEventEntity> events = paymentEventStore.getPayerPaymentHistory(payerId);
+        return ResponseEntity.ok(events);
+    }
+
+    @GetMapping("/{payeeId}/events")
+    public ResponseEntity<List<PaymentEventEntity>> getPaymentHistoryByPayee(@PathVariable UUID payeeId) {
+        log.info("📜 GET /payments/{}/events - Obtendo histórico SAGA de pagamentos do beneficiário", payeeId);
+        List<PaymentEventEntity> events = paymentEventStore.getPayeePaymentHistory(payeeId);
+        return ResponseEntity.ok(events);
+    }
 }
