@@ -1,6 +1,7 @@
 package com.banking.merchantservice.controller;
 
 import com.banking.merchantservice.dto.MerchantDto;
+import java.math.BigDecimal;
 import com.banking.merchantservice.model.Merchant;
 import com.banking.merchantservice.model.MerchantEventEntity;
 import com.banking.merchantservice.service.MerchantService;
