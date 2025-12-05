@@ -1,4 +1,4 @@
-package com.banking.payment;
+package com.banking.payment.interfaces;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;

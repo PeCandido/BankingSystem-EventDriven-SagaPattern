@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -142,6 +143,97 @@ public class PaymentSagaTest {
         }
     }
 
+    @Nested
+    @DisplayName("Compensation tests")
+    class CompensationTests {
 
+        @Test
+        @DisplayName("should trigger compensation (refund payer) when processing fails after debit")
+        void shouldTriggerCompensationWhenProcessingFails() {
+            UUID paymentId = UUID.randomUUID();
+            UUID payerId = UUID.randomUUID();
+            BigDecimal amount = new BigDecimal("100.00");
+
+            PaymentEntity payment = PaymentEntity.builder()
+                    .id(paymentId)
+                    .payerId(payerId)
+                    .amount(amount)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+            when(restTemplate.postForEntity(contains("/debit"), any(), eq(Map.class)))
+                    .thenReturn(new ResponseEntity<>(Map.of("status", "success"), HttpStatus.OK));
+
+            doThrow(new RuntimeException("Database error after debit"))
+                    .when(paymentEventStore).savePaymentApprovedEvent(any());
+
+            paymentSaga.executePaymentSaga(paymentId);
+
+            verify(restTemplate).postForEntity(
+                    contains("/merchants/" + payerId + "/credit"),
+                    any(),
+                    eq(Map.class)
+            );
+
+            verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REJECTED));
+        }
+
+        @Test
+        @DisplayName("Should NOT trigger compensation if debit failed initially")
+        void shouldNotTriggerCompensationIfDebitFailed() {
+            UUID paymentId = UUID.randomUUID();
+            PaymentEntity payment = PaymentEntity.builder()
+                    .id(paymentId)
+                    .payerId(UUID.randomUUID())
+                    .amount(BigDecimal.TEN)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+            when(restTemplate.postForEntity(contains("/debit"), any(), eq(Map.class)))
+                    .thenReturn(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+
+            paymentSaga.executePaymentSaga(paymentId);
+
+            verify(restTemplate, never()).postForEntity(
+                    contains("/credit"), any(), eq(Map.class)
+            );
+
+            verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REJECTED));
+        }
+
+        @Test
+        @DisplayName("Should handle failure during compensation gracefully")
+        void shouldHandleCompensationFailure() {
+            UUID paymentId = UUID.randomUUID();
+            PaymentEntity payment = PaymentEntity.builder()
+                    .id(paymentId)
+                    .payerId(UUID.randomUUID())
+                    .amount(BigDecimal.TEN)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+
+            when(restTemplate.postForEntity(contains("/debit"), any(), eq(Map.class)))
+                    .thenReturn(new ResponseEntity<>(HttpStatus.OK));
+
+            doThrow(new RuntimeException("Kafka error"))
+                    .when(kafkaTemplate).send(any(), any(), any());
+
+            when(restTemplate.postForEntity(contains("/credit"), any(), eq(Map.class)))
+                    .thenThrow(new RuntimeException("Network down during refund"));
+
+            assertDoesNotThrow(() -> paymentSaga.executePaymentSaga(paymentId));
+
+            verify(restTemplate).postForEntity(contains("/credit"), any(), eq(Map.class));
+
+            verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REJECTED));
+        }
+
+    }
 
 }
