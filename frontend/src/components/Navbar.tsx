@@ -38,15 +38,6 @@ export default function Navbar() {
           >
             📜 Events
           </NavLink>
-
-          <NavLink
-            to="/kafka"
-            className={({ isActive }) =>
-              `nav-link${isActive ? ' active' : ''}`
-            }
-          >
-            🚀 Kafka
-          </NavLink>
         </div>
 
         <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>

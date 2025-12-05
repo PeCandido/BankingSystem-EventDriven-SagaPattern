@@ -297,7 +297,7 @@ export default function MerchantCard() {
                   marginBottom: '0.5rem',
                 }}
               >
-                R{' '}
+                R${' '}
                 {merchant.balance.toLocaleString('pt-BR', {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,

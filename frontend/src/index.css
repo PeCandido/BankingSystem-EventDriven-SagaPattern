@@ -28,9 +28,9 @@
   --red-500: #ef4444;
 
   /* Semantic */
-  --color-background: #020617;           /* fundo da página */
-  --color-surface: #111827;              /* blocos / cards */
-  --color-surface-alt: #020617;          /* variação */
+  --color-background: #020617;          
+  --color-surface: #111827;              
+  --color-surface-alt: #020617;        
   --color-border: rgba(15, 23, 42, 0.85);
   --color-border-subtle: rgba(55, 65, 81, 0.9);
 

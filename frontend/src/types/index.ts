@@ -1,3 +1,38 @@
+export interface PaymentEvent {
+  eventId: string;
+  eventType: 'PAYMENT_CREATED' | 'PAYMENT_PROCESSED';
+  paymentId: string;
+  payerId: string;
+  payeeId: string;
+  amount: number;
+  currency: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  payerEmail: string;
+  description: string;
+  eventDateTime: string;
+}
+
+export interface MerchantEvent {
+  id: string;
+  eventType: 'MERCHANT_REGISTERED' | 'PAYMENT_RECEIVED' | 'PAYMENT_DEBITED';
+  merchantId: string;
+  balanceChange: number;
+  newBalance: number;
+  description: string;
+  eventDateTime: string;
+}
+
+export interface Payment {
+  id: string;
+  payerId: string;
+  payeeId: string;
+  amount: number;
+  currency: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Merchant {
   id: string;
   name: string;
@@ -5,33 +40,5 @@ export interface Merchant {
   phone: string;
   balance: number;
   currency: string;
-}
-
-export interface Payment {
-  id: string;
-  payerId: string;
-  payeeId: string;
-  payerEmail: string;
-  amount: number;
-  currency: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED';
-}
-
-export interface PaymentEvent {
-  id: string;
-  paymentId: string;
-  eventType: 'PAYMENT_CREATED' | 'PAYMENT_PROCESSED';
-  status: string;
-  eventDateTime: string;
-  amount?: number;
-  description?: string;
-}
-
-export interface MerchantEvent {
-  id: string;
-  merchantId: string;
-  eventType: 'MERCHANT_CREATED' | 'PAYMENT_RECEIVED';
-  eventDateTime: string;
-  amount?: number;
-  balanceAfter?: number;
+  createdAt: string;
 }
