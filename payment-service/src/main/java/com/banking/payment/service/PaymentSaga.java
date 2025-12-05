@@ -46,40 +46,38 @@ public class PaymentSaga {
         log.info("💳 [SAGA] Amount: {}", payment.getAmount());
         log.info("💳 [SAGA] Currency: {}", payment.getCurrency());
 
+        boolean debitSuccess = false;
+
         try {
             log.info("📤 [SAGA STEP 1] Debitando payer: {}", payment.getPayerId());
-            boolean debitSuccess = callMerchantServiceDebit(
-                    payment.getPayerId(),
-                    payment.getAmount()
-            );
+
+            debitSuccess = callMerchantServiceDebit(payment.getPayerId(), payment.getAmount());
 
             if (!debitSuccess) {
-                log.error("❌ Falha ao debitar payer");
                 failSaga(payment, "Debit failed - insufficient funds or connection error");
                 return;
             }
 
             log.info("✅ [SAGA STEP 1] Débito realizado com sucesso");
 
-            log.info("📤 [SAGA STEP 2] Publicando PaymentCompletedEvent");
             publishPaymentCompletedEvent(payment);
-            log.info("✅ [SAGA STEP 2] PaymentCompletedEvent publicado");
-
+            paymentEventStore.savePaymentApprovedEvent(paymentId);
             payment.setStatus(PaymentStatus.APPROVED);
             paymentRepository.save(payment);
-            paymentEventStore.savePaymentApprovedEvent(paymentId);
 
             log.info("✅ [SAGA COMPLETA] Payment {} - APPROVED", paymentId);
 
         } catch (Exception e) {
             log.error("❌ [SAGA FAILED] {}", e.getMessage(), e);
 
-            try {
-                log.warn("♻️ [COMPENSATION] Tentando estornar crédito payee: {}", payment.getPayeeId());
-                boolean compensationSuccess = callMerchantServiceDebit(payment.getPayeeId(), payment.getAmount());
-                log.info("♻️ Compensation result: {}", compensationSuccess ? "SUCCESS" : "FAILED");
-            } catch (Exception compEx) {
-                log.error("❌ Falha na compensação payee", compEx);
+            if (debitSuccess) {
+                boolean refundSuccess = callMerchantServiceCredit(payment.getPayerId(), payment.getAmount());
+
+                if (refundSuccess) {
+                    log.info("Chargeback successfully carried out. Customer balance restored.");
+                } else {
+                    log.error("Refurbishment failure. The customer was charged but the transaction failed.");
+                }
             }
 
             failSaga(payment, e.getMessage());
@@ -125,6 +123,27 @@ public class PaymentSaga {
                     "http://merchant-service:8082/api/merchants/" + merchantId + "/debit");
             log.error("❌ ═══════════════════════════════════════════", e);
 
+            return false;
+        }
+    }
+
+    private boolean callMerchantServiceCredit(UUID merchantId, BigDecimal amount) {
+        try {
+            String url = "http://merchant-service:8082/api/merchants/" + merchantId + "/credit";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+
+            Map<String, Object> body = new HashMap<>();
+            body.put("amount", amount);
+
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+
+            ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            log.error("Critical error when trying to return the value", e);
             return false;
         }
     }
