@@ -4,8 +4,8 @@ import com.banking.payment.dto.PaymentDetailsDto;
 import com.banking.payment.dto.PaymentDto;
 import com.banking.payment.dto.PaymentResponseDto;
 import com.banking.payment.model.PaymentEventEntity;
-import com.banking.payment.service.PaymentService;
 import com.banking.payment.service.PaymentEventStore;
+import com.banking.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/payments")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "http://localhost:3000")
 public class PaymentController {
     private final PaymentService paymentService;
     private final PaymentEventStore paymentEventStore;
@@ -45,7 +45,6 @@ public class PaymentController {
             @RequestParam(required = false) UUID payerId
     ) {
         log.info("📊 GET /payments - Listando pagamentos");
-
         if (payerId != null) {
             return ResponseEntity.ok(paymentService.getPaymentsByPayer(payerId));
         }
@@ -53,23 +52,25 @@ public class PaymentController {
     }
 
     @GetMapping("/{paymentId}/events")
-    public ResponseEntity<List<PaymentEventEntity>> getPaymentHistory(@PathVariable UUID paymentId) {
-        log.info("📜 GET /payments/{}/events - Obtendo histórico SAGA", paymentId);
-        List<PaymentEventEntity> events = paymentEventStore.getPaymentHistory(paymentId);
-        return ResponseEntity.ok(events);
-    }
+    public ResponseEntity<List<PaymentEventEntity>> getPaymentEvents(
+            @PathVariable UUID paymentId,
+            @RequestParam(required = false) String type
+    ) {
+        log.info("📜 GET /payments/{}/events?type={} - Obtendo histórico", paymentId, type);
 
-    @GetMapping("/{payerId}/events")
-    public ResponseEntity<List<PaymentEventEntity>> getPaymentHistoryByPayer(@PathVariable UUID payerId) {
-        log.info("📜 GET /payments/{}/events - Obtendo histórico SAGA de pagamentos do pagador", payerId);
-        List<PaymentEventEntity> events = paymentEventStore.getPayerPaymentHistory(payerId);
-        return ResponseEntity.ok(events);
-    }
+        List<PaymentEventEntity> events;
 
-    @GetMapping("/{payeeId}/events")
-    public ResponseEntity<List<PaymentEventEntity>> getPaymentHistoryByPayee(@PathVariable UUID payeeId) {
-        log.info("📜 GET /payments/{}/events - Obtendo histórico SAGA de pagamentos do beneficiário", payeeId);
-        List<PaymentEventEntity> events = paymentEventStore.getPayeePaymentHistory(payeeId);
+        if ("payer".equals(type)) {
+            log.info("📜 Histórico de pagamentos DO payer: {}", paymentId);
+            events = paymentEventStore.getPayerPaymentHistory(paymentId);
+        } else if ("payee".equals(type)) {
+            log.info("📜 Histórico de pagamentos PARA payee: {}", paymentId);
+            events = paymentEventStore.getPayeePaymentHistory(paymentId);
+        } else {
+            log.info("📜 Histórico do pagamento específico: {}", paymentId);
+            events = paymentEventStore.getPaymentHistory(paymentId);
+        }
+
         return ResponseEntity.ok(events);
     }
 }
