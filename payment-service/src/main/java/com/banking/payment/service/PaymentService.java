@@ -3,6 +3,7 @@ package com.banking.payment.service;
 import com.banking.core.event.PaymentCreatedEvent;
 import com.banking.payment.dto.PaymentDetailsDto;
 import com.banking.payment.dto.PaymentDto;
+import com.banking.payment.exception.InvalidPaymentException;
 import com.banking.payment.exception.PaymentNotFoundException;
 import com.banking.payment.mapper.PaymentMapper;
 import com.banking.payment.model.Payment;
@@ -14,6 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -29,6 +31,23 @@ public class PaymentService {
 
     @Transactional
     public UUID createPayment(PaymentDto request) {
+
+        if( request == null ) {
+            throw new InvalidPaymentException("Payment request cannot be null");
+        }
+
+        if (request.payerId() == null || request.payeeId() == null) {
+            throw new InvalidPaymentException("Payer ID and Payee ID are required");
+        }
+
+        if( request.payerId().equals(request.payeeId()) ) {
+            throw new InvalidPaymentException("Payer and payee cannot be the same");
+        }
+
+        if( request.amount() == null || request.amount().compareTo(BigDecimal.ZERO) <= 0 ) {
+            throw new InvalidPaymentException("Amount must be greater than zero");
+        }
+
         log.info("💳 Criando payment: {} → {}", request.payerId(), request.payeeId());
 
         Payment payment = new Payment(

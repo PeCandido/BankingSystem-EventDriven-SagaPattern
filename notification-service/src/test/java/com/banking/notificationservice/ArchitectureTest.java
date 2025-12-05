@@ -105,4 +105,28 @@ public class ArchitectureTest {
                     .should().dependOnClassesThat(annotatedWith(Entity.class))
                     .allowEmptyShould(true)
                     .because("Events must be decoupled from persistence entities to ensure schema evolution independence.");
+
+    @ArchTest
+    static final ArchRule consumers_must_consume_domain_events =
+            methods()
+                    .that().areAnnotatedWith("org.springframework.kafka.annotation.KafkaListener")
+                    .should().haveRawParameterTypes(
+                            com.tngtech.archunit.base.DescribedPredicate.describe(
+                                    "parâmetros que são Eventos (BaseEvent ou sufixo Event)",
+                                    params -> params.stream().anyMatch(clazz ->
+                                            clazz.getName().endsWith("Event") ||
+                                                    clazz.isAssignableTo(com.banking.core.event.BaseEvent.class)
+                                    )
+                            )
+                    )
+                    .because("Typing Security: Kafka Consumers must be given Event classes as arguments.");
+
+    @ArchTest
+    static final ArchRule notifiers_must_implement_interface =
+            classes()
+                    .that().haveSimpleNameEndingWith("Notifier")
+                    .and().areNotInterfaces()
+                    .should().implement(com.banking.notificationservice.notifier.EmailNotifier.class)
+                    .because("Standardization (Strategy): All sending implementations must respect the EmailNotifier interface.");
+
 }
