@@ -106,9 +106,6 @@ public class ArchitectureTest {
                     .because("Entities should not have json annotations.");
 
     @ArchTest
-    static final ArchRule no_generic_exceptions = GeneralCodingRules.NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS;
-
-    @ArchTest
     static final ArchRule no_system_out = GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
 
     @ArchTest

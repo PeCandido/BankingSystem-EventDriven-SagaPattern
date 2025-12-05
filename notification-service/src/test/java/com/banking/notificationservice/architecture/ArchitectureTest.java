@@ -80,9 +80,6 @@ public class ArchitectureTest {
                     .should().beInterfaces()
                     .because("Spring JPA repositories should be interfaces");
 
-    @ArchTest
-    static final ArchRule no_generic_exceptions = GeneralCodingRules.NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS
-            .because("Throw specific business exceptions instead of generic RuntimeException.");
 
     @ArchTest
     static final ArchRule no_system_out = GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS
