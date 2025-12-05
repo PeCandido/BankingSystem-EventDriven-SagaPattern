@@ -1,8 +1,7 @@
-package com.banking.payment;
+package com.banking.payment.interfaces;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.core.annotation.AliasFor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

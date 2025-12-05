@@ -1,6 +1,5 @@
-package com.banking.payment;
+package com.banking.payment.architecture;
 
-import com.banking.core.event.BaseEvent;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
