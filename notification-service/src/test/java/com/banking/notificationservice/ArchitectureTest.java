@@ -119,7 +119,7 @@ public class ArchitectureTest {
                                     )
                             )
                     )
-                    .because("Segurança de Tipagem: Consumidores Kafka devem receber classes de Evento como argumento.");
+                    .because("Typing Security: Kafka Consumers must be given Event classes as arguments.");
 
     @ArchTest
     static final ArchRule notifiers_must_implement_interface =
@@ -127,6 +127,6 @@ public class ArchitectureTest {
                     .that().haveSimpleNameEndingWith("Notifier")
                     .and().areNotInterfaces()
                     .should().implement(com.banking.notificationservice.notifier.EmailNotifier.class)
-                    .because("Padronização (Strategy): Todas as implementações de envio (Fake/SMTP) devem respeitar a interface EmailNotifier.");
+                    .because("Standardization (Strategy): All sending implementations must respect the EmailNotifier interface.");
 
 }
