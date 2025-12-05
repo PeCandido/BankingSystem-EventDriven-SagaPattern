@@ -248,6 +248,35 @@ public class PaymentServiceTest {
             verifyNoInteractions(paymentRepository);
         }
 
+        @UnitTest
+        @DisplayName("should propagate exception when Kafka fails to send event")
+        void shouldThrowExceptionWhenKafkaFails() {
+            PaymentDto request = new PaymentDto(
+                    UUID.randomUUID(), "test", UUID.randomUUID(), BigDecimal.TEN, "BRL"
+            );
+
+            when(paymentRepository.save(any())).thenAnswer(i -> i.getArgument(0));
+
+            when(kafkaTemplate.send(anyString(), anyString(), any()))
+                    .thenThrow(new RuntimeException("Kafka is down"));
+
+            assertThrows(RuntimeException.class, () -> paymentService.createPayment(request));
+
+            verify(paymentRepository).save(any());
+        }
+
+        @UnitTest
+        @DisplayName("should throw exception when amount has more than 2 decimal places")
+        void shouldThrowExceptionForInvalidScale() {
+            PaymentDto request = new PaymentDto(
+                    UUID.randomUUID(), "test", UUID.randomUUID(), new BigDecimal("100.559"), "BRL"
+            );
+
+            assertThrows(InvalidPaymentException.class, () -> paymentService.createPayment(request));
+        }
+
     }
+
+
 
 }
