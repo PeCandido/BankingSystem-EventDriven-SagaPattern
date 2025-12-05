@@ -221,7 +221,7 @@ export default function PaymentFlow() {
               >
                 Valor:
               </span>{' '}
-              R ${' '}
+              R${' '}
               {payment.payment.amount.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
               })}
