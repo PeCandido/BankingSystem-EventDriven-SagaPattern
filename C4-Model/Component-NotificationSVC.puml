@@ -1,0 +1,35 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Diagrama de Componentes - Notification Service
+
+
+System_Boundary(notification_service, "Notification Service", "Java, Spring Boot", "Serviço responsável por gerenciar e enviar notificações.") {
+
+    Component(consumer, "NotificationConsumer", "Kafka Listener", "Escuta eventos de notificação do Broker de Mensagens.")
+    Component(service, "NotificationService", "Spring Service", "Contém a lógica de negócio, orquestra a persistência e o envio.")
+    Component(repository, "NotificationRepository", "Spring Repository", "Gerencia a persistência da entidade de notificação.")
+    Component(notifier_interface, "EmailNotifier", "Interface Java", "Define o contrato para o envio de e-mails.")
+    Component(smtp_impl, "StmpEmailNotifier", "Component Implementation", "Implementação que envia e-mails reais via servidor SMTP.")
+    Component(entity, "NotificationEntity", "JPA Entity", "Representa os dados da notificação no banco.")
+}
+
+ContainerDb(database, "PostegreSQL", "Contêiner: Banco de dados PostegreSQL", "Armazena o histórico e status das notificações.")
+ContainerDb(message_broker, "Message Broker", "Apache Kafka", "Fila de eventos de pagamentos.")
+System_Ext(smtp_server, "Servidor SMTP", "SMTP Server", "Servidor externo de e-mail (ex: Gmail, Yahoo).")
+
+Rel(message_broker, consumer, "Envia mensagem de notificação")
+Rel(consumer, service, "Chama lógica de processamento")
+
+Rel(service, repository, "Persiste status da notificação")
+Rel(repository, database, "Leitura/Escrita")
+Rel(repository, entity, "Mapeia")
+
+Rel(service, notifier_interface, "Usa estratégia de envio")
+
+Rel(notifier_interface, smtp_impl, "Implementado por")
+
+Rel(smtp_impl, smtp_server, "Envia e-mail")
+
+SHOW_LEGEND()
+@enduml
