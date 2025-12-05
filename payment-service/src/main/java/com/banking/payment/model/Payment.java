@@ -11,7 +11,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Payment {
-
     private UUID id;
     private UUID payerId;
     private String payerEmail;
@@ -21,20 +20,12 @@ public class Payment {
     private PaymentStatus status;
 
     public void validate(){
-        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){
+        if(amount.compareTo(BigDecimal.ZERO) <= 0){
             throw new InvalidPaymentException("Amount must be greater than zero");
         }
 
-        if(currency == null || currency.trim().isEmpty()){
+        if(currency.trim().isEmpty()){
             throw new InvalidPaymentException("Currency cannot be null or empty");
-        }
-
-        if(payerId == null){
-            throw new InvalidPaymentException("Payer ID cannot be null or empty");
-        }
-
-        if(payeeId == null){
-            throw new InvalidPaymentException("Payee id is null");
         }
     }
 

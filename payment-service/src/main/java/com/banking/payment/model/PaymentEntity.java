@@ -17,14 +17,20 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentEntity {
-
     @Id
     private UUID id;
+
     private UUID payerId;
+
     private String payerEmail;
+
     private UUID payeeId;
+
+    @Column(nullable = false)
     private BigDecimal amount;
-    private String currency;
+
+    @Column(nullable = false)
+    private String currency = "BRL";
 
     @Enumerated(EnumType.STRING)
     private PaymentStatus status;
