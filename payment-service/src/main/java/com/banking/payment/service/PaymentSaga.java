@@ -2,6 +2,8 @@ package com.banking.payment.service;
 
 import com.banking.core.enums.PaymentStatus;
 import com.banking.core.event.PaymentCompletedEvent;
+import com.banking.payment.exception.PaymentNotFoundException;
+import com.banking.payment.exception.PaymentProcessingException;
 import com.banking.payment.model.PaymentEntity;
 import com.banking.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +39,7 @@ public class PaymentSaga {
         log.info("🔄 ═══════════════════════════════════════════");
 
         PaymentEntity payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new RuntimeException("Payment not found: " + paymentId));
+                .orElseThrow(() -> new PaymentNotFoundException("Payment not found: " + paymentId));
 
         log.info("💳 [SAGA] Payer: {}", payment.getPayerId());
         log.info("💳 [SAGA] Payee: {}", payment.getPayeeId());
@@ -147,7 +149,7 @@ public class PaymentSaga {
 
         } catch (Exception e) {
             log.error("❌ Erro ao publicar PaymentCompletedEvent:", e);
-            throw new RuntimeException("Kafka publish failed", e);
+            throw new PaymentProcessingException("Kafka publish failed", e);
         }
     }
 
