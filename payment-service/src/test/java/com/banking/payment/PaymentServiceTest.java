@@ -236,6 +236,18 @@ public class PaymentServiceTest {
             verify(paymentEventStore, never()).savePaymentRejectedEvent(any());
         }
 
+        @UnitTest
+        @DisplayName("should throw exception when payer and payee are the same")
+        void shouldThrowExceptionForSelfPayment() {
+            UUID sameId = UUID.randomUUID();
+            PaymentDto request = new PaymentDto(
+                    sameId, "payer@test.com", sameId, new BigDecimal("100.00"), "BRL"
+            );
+
+            assertThrows(InvalidPaymentException.class, () -> paymentService.createPayment(request));
+            verifyNoInteractions(paymentRepository);
+        }
+
     }
 
 }

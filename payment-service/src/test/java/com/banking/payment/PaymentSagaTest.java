@@ -23,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -97,17 +98,14 @@ public class PaymentSagaTest {
         }
 
         @Test
-        @DisplayName("should handle exception during process and trigger fail saga")
-        void shouldHandleGenericException() {
+        @DisplayName("should propagate exception when repository fails unexpectedly")
+        void shouldPropagateExceptionWhenRepositoryFails() {
             UUID paymentId = UUID.randomUUID();
-            when(paymentRepository.findById(paymentId)).thenThrow(new RuntimeException("Database error"));
+            when(paymentRepository.findById(paymentId)).thenThrow(new RuntimeException("DB Connection Error"));
 
-            try {
-                paymentSaga.executePaymentSaga(paymentId);
-            } catch (Exception e) {
+            assertThrows(RuntimeException.class, () -> paymentSaga.executePaymentSaga(paymentId));
 
-            }
-
+            verifyNoInteractions(restTemplate, kafkaTemplate);
         }
 
         @Test
@@ -116,9 +114,31 @@ public class PaymentSagaTest {
             UUID paymentId = UUID.randomUUID();
             when(paymentRepository.findById(paymentId)).thenReturn(Optional.empty());
 
-            org.junit.jupiter.api.Assertions.assertThrows(PaymentNotFoundException.class, () -> {
+            assertThrows(PaymentNotFoundException.class, () -> {
                 paymentSaga.executePaymentSaga(paymentId);
             });
+        }
+
+        @Test
+        @DisplayName("should fail saga on network timeout or 500 error from Debit Service")
+        void shouldFailSagaOnNetworkError() {
+            UUID paymentId = UUID.randomUUID();
+            PaymentEntity payment = PaymentEntity.builder()
+                    .id(paymentId)
+                    .status(PaymentStatus.PENDING)
+                    .build();
+
+            when(paymentRepository.findById(paymentId)).thenReturn(Optional.of(payment));
+            when(restTemplate.postForEntity(anyString(), any(), eq(Map.class)))
+                    .thenThrow(new org.springframework.web.client.ResourceAccessException("Connection timed out"));
+
+            try {
+                paymentSaga.executePaymentSaga(paymentId);
+            } catch (Exception e) {
+            }
+
+            verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REJECTED));
+            verify(paymentEventStore).savePaymentRejectedEvent(paymentId);
         }
 
     }
