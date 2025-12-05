@@ -48,6 +48,10 @@ public class PaymentService {
             throw new InvalidPaymentException("Amount must be greater than zero");
         }
 
+        if (request.amount().scale() > 2) {
+            throw new InvalidPaymentException("Amount cannot have more than 2 decimal places");
+        }
+
         log.info("💳 Criando payment: {} → {}", request.payerId(), request.payeeId());
 
         Payment payment = new Payment(
