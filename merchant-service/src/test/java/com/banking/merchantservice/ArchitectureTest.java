@@ -128,4 +128,41 @@ public class ArchitectureTest {
                     .should().dependOnClassesThat(annotatedWith(Entity.class))
                     .allowEmptyShould(true)
                     .because("Events must be decoupled from persistence entities to ensure schema evolution independence.");
+
+    @ArchTest
+    static final ArchRule event_sourcing_write_protection =
+            noClasses()
+                    .that().haveSimpleNameNotEndingWith("EventStore")
+                    .should().accessClassesThat().haveSimpleNameEndingWith("EventRepository")
+                    .because("Only EventStore classes should access EventRepository classes to ensure ledger consistency.");
+
+    @ArchTest
+    static final ArchRule event_store_must_be_transactional =
+            methods()
+                    .that().areDeclaredInClassesThat().haveSimpleNameEndingWith("EventStore")
+                    .and().arePublic()
+                    .and().haveNameNotStartingWith("get")
+                    .and().haveNameNotStartingWith("find")
+                    .should().beAnnotatedWith(org.springframework.transaction.annotation.Transactional.class)
+                    .because("Event sourcing operations must be transactional to guarantee atomicity.");
+
+    @ArchTest
+    static final ArchRule listeners_should_delegate_to_services =
+            classes()
+                    .that().resideInAPackage("..listener..")
+                    .should().onlyAccessClassesThat().resideInAnyPackage(
+                            "..listener..",
+                            "..service..",
+                            "..event..",
+                            "com.banking.core..",
+                            "java..", "org.slf4j..", "org.springframework.."
+                    )
+                    .because("Listeners should only delegate to Services and not access Repositories or Models directly.");
+
+    @ArchTest
+    static final ArchRule model_should_not_depend_on_events =
+            noClasses()
+                    .that().resideInAPackage("..model..")
+                    .should().dependOnClassesThat().resideInAPackage("..event..")
+                    .because("Domain models should not depend on Events. The flow must be: Service -> changes Model -> generates Event.");
 }
