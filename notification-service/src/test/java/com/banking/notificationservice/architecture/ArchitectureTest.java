@@ -1,4 +1,4 @@
-package com.banking.notificationservice;
+package com.banking.notificationservice.architecture;
 
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
