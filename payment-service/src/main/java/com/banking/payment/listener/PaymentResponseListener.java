@@ -17,14 +17,19 @@ public class PaymentResponseListener {
 
     @KafkaListener(topics = "payment-processed", groupId = "payment-service-group")
     public void handlePaymentProcessed(PaymentProcessedEvent event) {
-        log.info("Processed payment event: {}", event);
+        log.info("📥 Processed payment event: {}", event);
 
-        if (event.getStatus() == PaymentStatus.APPROVED)
+        PaymentStatus status = PaymentStatus.valueOf(event.getStatus());
+
+        if (status == PaymentStatus.APPROVED) {
+            log.info("✅ Aprovando pagamento");
             paymentService.approvedPayment(event.getPaymentId());
-        else paymentService.rejectPayment(event.getPaymentId());
+        } else if (status == PaymentStatus.REJECTED) {
+            log.info("❌ Rejeitando pagamento");
+            paymentService.rejectPayment(event.getPaymentId());
+        }
     }
 
     @KafkaHandler(isDefault = true)
     public void ignoreUnknownEvents(Object event) {}
-
 }

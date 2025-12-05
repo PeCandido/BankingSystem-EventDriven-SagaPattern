@@ -1,11 +1,14 @@
 package com.banking.merchantservice.listener;
 
-import com.banking.core.event.PaymentCompletedEvent;
+import com.banking.core.event.PaymentProcessedEvent;
 import com.banking.merchantservice.service.MerchantService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
 
 @Component
 @RequiredArgsConstructor
@@ -14,20 +17,29 @@ public class PaymentEventListener {
     private final MerchantService merchantService;
 
     @KafkaListener(
-            topics = "payment-completed",
-            groupId = "merchant-service-group",
-            containerFactory = "kafkaListenerContainerFactory"
+            topics = "payment-processed",
+            groupId = "merchant-service-group"
     )
-    public void handlePaymentCompletedEvent(PaymentCompletedEvent event) {
-        log.info("💰 [MERCHANT] Received PaymentCompletedEvent: paymentId={}, payeeId={}, amount={}",
-                event.getPaymentId(), event.getPayeeId(), event.getAmount());
+    @Transactional
+    public void handlePaymentProcessed(PaymentProcessedEvent event) {
+        log.info("💰 [MERCHANT] Recebido PaymentProcessedEvent: paymentId={}, payerId={}, payeeId={}, amount={}, status={}",
+                event.getPaymentId(), event.getPayerId(), event.getPayeeId(), event.getAmount(), event.getStatus());
 
         try {
-            merchantService.processReceivedPayment(event.getPayeeId(), event.getAmount());
-            log.info("✅ Merchant {} credited with {} successfully",
-                    event.getPayeeId(), event.getAmount());
+            if ("APPROVED".equals(event.getStatus())) {
+                log.info("💳 Debitando payer: {} de {}", event.getPayerId(), event.getAmount());
+                merchantService.debitPayer(event.getPayerId(), event.getAmount());
+
+                log.info("✅ Creditando payee: {} com {}", event.getPayeeId(), event.getAmount());
+                merchantService.processReceivedPayment(event.getPayeeId(), event.getAmount());
+
+                log.info("✅ Pagamento {} processado com sucesso", event.getPaymentId());
+
+            } else if ("REJECTED".equals(event.getStatus())) {
+                log.info("⚠️ Pagamento {} foi rejeitado: {}", event.getPaymentId(), event.getDescription());
+            }
         } catch (Exception e) {
-            log.error("❌ Error crediting merchant: {}", e.getMessage(), e);
+            log.error("❌ Erro ao processar pagamento {}: {}", event.getPaymentId(), e.getMessage(), e);
         }
     }
 }

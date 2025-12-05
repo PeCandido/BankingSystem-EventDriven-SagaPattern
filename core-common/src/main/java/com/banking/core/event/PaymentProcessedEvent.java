@@ -1,23 +1,27 @@
 package com.banking.core.event;
 
-import com.banking.core.enums.PaymentStatus;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@SuperBuilder
-@EqualsAndHashCode(callSuper = false)
-public class PaymentProcessedEvent extends BaseEvent{
+public class PaymentProcessedEvent {
+    private UUID eventId;
+    private LocalDateTime eventDateTime;
     private UUID paymentId;
     private UUID payerId;
+    private UUID payeeId;
+    private BigDecimal amount;
+    private String currency;
+    private String status;
     private String payerEmail;
-    private PaymentStatus status;
     private String description;
 }
