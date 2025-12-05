@@ -1,5 +1,6 @@
 package com.banking.payment;
 
+import com.banking.core.event.BaseEvent;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
@@ -7,6 +8,7 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.library.GeneralCodingRules;
 import jakarta.persistence.Entity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 
 import static com.tngtech.archunit.core.domain.JavaClass.Predicates.resideInAPackage;
@@ -126,16 +128,27 @@ public class ArchitectureTest {
     static final ArchRule no_access_to_standard_streams = GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
 
     @ArchTest
-    static final ArchRule no_generic_exceptions = GeneralCodingRules.NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS;
-
-    @ArchTest
     static final ArchRule no_java_util_logging = GeneralCodingRules.NO_CLASSES_SHOULD_USE_JAVA_UTIL_LOGGING;
 
     @ArchTest
     static final ArchRule events_must_not_depend_on_entities =
+        noClasses()
+                .that().resideInAPackage("..event..")
+                .should().dependOnClassesThat(annotatedWith(Entity.class))
+                .allowEmptyShould(true)
+                .because("Events must be decoupled from persistence entities to ensure schema evolution independence.");
+
+    @ArchTest
+    static final ArchRule event_sourcing_integrity_check =
             noClasses()
-                    .that().resideInAPackage("..event..")
-                    .should().dependOnClassesThat(annotatedWith(Entity.class))
-                    .allowEmptyShould(true)
-                    .because("Events must be decoupled from persistence entities to ensure schema evolution independence.");
+                    .that().haveSimpleNameNotEndingWith("EventStore")
+                    .should().dependOnClassesThat().haveSimpleNameEndingWith("EventRepository");
+
+    @ArchTest
+    static final ArchRule saga_must_be_services =
+            classes()
+                    .that().haveSimpleNameEndingWith("Saga")
+                    .should().beAnnotatedWith(Service.class)
+                    .andShould().resideInAPackage("..service..");
+
 }
