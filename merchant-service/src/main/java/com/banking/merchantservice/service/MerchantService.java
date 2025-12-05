@@ -26,8 +26,6 @@ public class MerchantService {
 
     @Transactional
     public Merchant registerMerchant(MerchantDto request) {
-        log.info("Registering new merchant: {}", request.name());
-
         MerchantEntity merchantEntity = MerchantEntity.builder()
                 .name(request.name())
                 .email(request.email())
@@ -44,31 +42,26 @@ public class MerchantService {
     }
 
     public Merchant getMerchant(UUID merchantId) {
-        log.info("Fetching merchant with id: {}", merchantId);
         return merchantRepository.findById(merchantId)
                 .map(MerchantMapper::toDomain)
                 .orElseThrow(() -> new MerchantNotFoundException("Merchant not found with id: " + merchantId));
     }
 
     public Merchant getMerchantByEmail(String email) {
-        log.info("Fetching merchant with email: {}", email);
         return merchantRepository.findByEmail(email)
                 .map(MerchantMapper::toDomain)
                 .orElseThrow(() -> new MerchantNotFoundException("Merchant not found with email: " + email));
     }
 
     public List<Merchant> getAllMerchants() {
-        log.info("📊 Buscando todos os merchants");
         List<Merchant> merchants = merchantRepository.findAll()
                 .stream()
                 .map(MerchantMapper::toDomain)
                 .toList();
-        log.info("✅ {} merchants encontrados", merchants.size());
         return merchants;
     }
 
     public Merchant getMerchantByPhone(String phone) {
-        log.info("Fetching merchant with phone: {}", phone);
         return merchantRepository.findByPhone(phone)
                 .map(MerchantMapper::toDomain)
                 .orElseThrow(() -> new MerchantNotFoundException("Merchant not found with phone: " + phone));
@@ -76,7 +69,6 @@ public class MerchantService {
 
     @Transactional
     public void processReceivedPayment(UUID payeeId, java.math.BigDecimal amount) {
-        log.info("Processing received payment for merchant: {}, amount: {}", payeeId, amount);
 
         MerchantEntity merchantEntity = merchantRepository.findById(payeeId)
                 .orElseThrow(() -> new MerchantNotFoundException("Merchant not found with id: " + payeeId));
@@ -92,12 +84,10 @@ public class MerchantService {
                 updated.getBalance()
         );
 
-        log.info("Payment processed successfully. New balance: {}", updated.getBalance());
     }
 
     @Transactional
     public void debitPayer(UUID payerId, BigDecimal amount) {
-        log.info("💳 Debitando payer: {}, amount: {}", payerId, amount);
 
         MerchantEntity merchantEntity = merchantRepository.findById(payerId)
                 .orElseThrow(() -> new MerchantNotFoundException("Payer merchant not found: " + payerId));
@@ -113,6 +103,5 @@ public class MerchantService {
                 updated.getBalance()
         );
 
-        log.info("✅ Payer debited successfully. New balance: {}", updated.getBalance());
     }
 }

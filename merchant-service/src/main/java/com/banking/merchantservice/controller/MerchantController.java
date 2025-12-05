@@ -27,29 +27,24 @@ public class MerchantController {
 
     @PostMapping
     public ResponseEntity<Merchant> registerMerchant(@RequestBody MerchantDto request) {
-        log.info("📝 Registrando merchant: {}", request.email());
         Merchant merchant = merchantService.registerMerchant(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(merchant);
     }
 
     @GetMapping("/{merchantId}")
     public ResponseEntity<Merchant> getMerchant(@PathVariable UUID merchantId) {
-        log.info("🔍 Buscando merchant: {}", merchantId);
         Merchant merchant = merchantService.getMerchant(merchantId);
         return ResponseEntity.ok(merchant);
     }
 
     @GetMapping
     public ResponseEntity<List<Merchant>> getAllMerchants() {
-        log.info("📊 Listando merchants");
         List<Merchant> merchants = merchantService.getAllMerchants();
-        log.info("✅ {} merchants encontrados", merchants.size());
         return ResponseEntity.ok(merchants);
     }
 
     @GetMapping("/{merchantId}/balance")
     public ResponseEntity<MerchantBalance> getMerchantBalance(@PathVariable UUID merchantId) {
-        log.info("💰 Saldo merchant: {}", merchantId);
         Merchant merchant = merchantService.getMerchant(merchantId);
         if (merchant != null) {
             return ResponseEntity.ok(new MerchantBalance(merchantId, merchant.getBalance().doubleValue()));
@@ -59,14 +54,12 @@ public class MerchantController {
 
     @GetMapping("/{merchantId}/events")
     public ResponseEntity<List<MerchantEventEntity>> getMerchantHistory(@PathVariable UUID merchantId) {
-        log.info("📜 Histórico merchant: {}", merchantId);
         List<MerchantEventEntity> events = merchantEventStore.getMerchantHistory(merchantId);
         return ResponseEntity.ok(events);
     }
 
     @PostMapping("/{merchantId}/debit")
     public ResponseEntity<Void> debitMerchant(@PathVariable UUID merchantId, @RequestBody DebitRequest request) {
-        log.info("💳 Debitando merchant: {}, amount: {}", merchantId, request.getAmount());
         merchantService.debitPayer(merchantId, request.getAmount());
         return ResponseEntity.ok().build();
     }

@@ -45,7 +45,6 @@ public class NotificationService {
                 .build();
 
         notificationRepository.save(notificationEntity);
-        log.info("Notification saved");
     }
 
 }

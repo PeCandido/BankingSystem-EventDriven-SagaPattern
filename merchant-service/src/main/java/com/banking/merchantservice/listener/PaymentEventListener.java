@@ -27,13 +27,10 @@ public class PaymentEventListener {
 
         try {
             if ("APPROVED".equals(event.getStatus())) {
-                log.info("💳 Debitando payer: {} de {}", event.getPayerId(), event.getAmount());
                 merchantService.debitPayer(event.getPayerId(), event.getAmount());
 
-                log.info("✅ Creditando payee: {} com {}", event.getPayeeId(), event.getAmount());
                 merchantService.processReceivedPayment(event.getPayeeId(), event.getAmount());
 
-                log.info("✅ Pagamento {} processado com sucesso", event.getPaymentId());
 
             } else if ("REJECTED".equals(event.getStatus())) {
                 log.info("⚠️ Pagamento {} foi rejeitado: {}", event.getPaymentId(), event.getDescription());

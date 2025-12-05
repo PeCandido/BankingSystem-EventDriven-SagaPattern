@@ -19,8 +19,6 @@ public class StmpEmailNotifier implements EmailNotifier {
     public void send(String to, String subject, String body) {
 
         try {
-            log.info("Trying to send real email by SMTP to: {}", to);
-
             SimpleMailMessage message = new SimpleMailMessage();
             message.setFrom("noreply@banking-system.com");
             message.setTo(to);
@@ -29,7 +27,6 @@ public class StmpEmailNotifier implements EmailNotifier {
 
             mailSender.send(message);
 
-            log.info("Email sent");
         } catch (Exception e) {
             log.error("Error sending email", e);
 

@@ -35,7 +35,6 @@ public class MerchantEventStore {
                 .build();
 
         merchantEventRepository.save(event);
-        log.info("Merchant event saved: merchantId={}, eventType={}", merchantId, event.getEventType());
     }
 
     @Transactional
@@ -55,8 +54,6 @@ public class MerchantEventStore {
                 .build();
 
         merchantEventRepository.save(event);
-        log.info("Payment received event saved: merchantId={}, amount={}, newBalance={}",
-                merchantId, amount, newBalance);
     }
 
     @Transactional
@@ -72,8 +69,6 @@ public class MerchantEventStore {
                 .build();
 
         merchantEventRepository.save(event);
-        log.info("Payment debited event saved: merchantId={}, amount={}, newBalance={}",
-                merchantId, amountChange, newBalance);
     }
 
     public List<MerchantEventEntity> getMerchantHistory(UUID merchantId) {

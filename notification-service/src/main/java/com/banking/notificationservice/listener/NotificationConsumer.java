@@ -17,7 +17,6 @@ public class NotificationConsumer {
 
     @KafkaListener(topics = "payment-processed", groupId = "notification-group")
     public void handlePaymentProcessed( PaymentProcessedEvent event ) {
-        log.info("Received payment processed event: {}", event);
         notificationService.notifyPaymentProcessed(event);
     }
 
