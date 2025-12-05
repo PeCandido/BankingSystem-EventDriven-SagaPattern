@@ -1,0 +1,43 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Diagrama de Componentes - Merchant Service
+
+SHOW_PERSON_OUTLINE()
+
+System_Boundary(merchant_service, "Merchant Service", "Java, Spring Boot", "Gerencia o cadastro de lojistas e atualiza saldos/status baseado em transações.") {
+
+    Component(controller, "MerchantController", "Spring REST Controller", "Expõe endpoints para cadastro e consulta de lojistas.")
+    Component(service, "MerchantService", "Spring Service", "Contém a lógica de domínio do lojista.")
+    Component(event_store, "MerchantEventStore", "Event Store Service", "Gerencia o registro histórico de mudanças na conta do lojista.")
+    Component(payment_listener, "PaymentEventListener", "Message Listener", "Escuta eventos de pagamentos concluídos para atualizar o lojista.")
+    Component(repo, "MerchantRepository", "JPA Repository", "Acessa o estado atual da entidade Merchant.")
+    Component(event_repo, "MerchantEventRepository", "JPA Repository", "Persiste o log de eventos.")
+    Component(mapper, "MerchantMapper", "Component", "Converte entre DTOs e Entidades.")
+}
+
+Person(admin, "Administrador", "Administrador que registra lojistas")
+ContainerDb(database, "PostgreSQL", "Contêiner: Banco de dados PostgreSQL", "Armazena entidades de empresa e eventos.")
+ContainerDb(message_broker, "Message Broker", "Apache Kafka", "Transporta eventos de pagamento.")
+Container(payment_service, "Payment Service", "Software System", "Fonte dos eventos de pagamento.")
+
+Rel(message_broker, payment_listener, "Recebe evento de pagamento processado")
+Rel(controller, service, "Gerencia Lojista")
+
+Rel(payment_listener, service, "Aciona atualização de saldo/status")
+Rel(service, event_store, "Registra alteração de estado")
+Rel(service, mapper, "Usa")
+
+Rel(service, repo, "Lê/Salva entidade empresa")
+Rel(event_store, event_repo, "Salva evento")
+
+Rel(repo, database, "Grava entidade")
+Rel(event_repo, database, "Grava evento")
+
+Rel(payment_service, message_broker, "Publica eventos")
+
+Rel(admin, controller, "Registra lojista")
+Rel(service, message_broker, "Envio de eventos para broker")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,47 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Diagrama de Componentes - Payment Service
+
+SHOW_PERSON_OUTLINE()
+
+System_Boundary(payment_service, "Payment Service", "Java, Spring Boot", "Gerencia pagamentos, orquestração de transações distribuídas (Saga) e Event Sourcing.") {
+
+    Component(controller, "PaymentController", "Spring REST Controller", "Recebe requisições HTTP para iniciar ou consultar pagamentos.")
+    Component(service, "PaymentService", "Spring Service", "Contém a lógica de domínio de pagamentos.")
+    Component(saga, "PaymentSaga", "Saga Orchestrator", "Gerencia o ciclo de vida da transação distribuída e compensações.")
+    Component(event_store, "PaymentEventStore", "Event Store Service", "Grava e le o histórico de eventos.")
+    Component(response_listener, "PaymentResponseListener", "Message Listener", "Escuta respostas de outros serviços.")
+    Component(saga_listener, "PaymentSagaListener", "Message Listener", "Escuta eventos de controle da Saga.")
+    Component(repo, "PaymentRepository", "JPA Repository", "Persiste o estado atual da entidade Payment.")
+    Component(event_repo, "PaymentEventRepository", "JPA Repository", "Persiste os eventos de pagamentos.")
+    Component(mapper, "PaymentMapper", "Component", "Realiza a conversão entre DTOs e Entidades.")
+}
+
+Person(payer, "Payer (Pagador)", "Usuário que quer realizar pagamento")
+ContainerDb(database, "PostgreSQL", "Contêiner: Banco de dados PostgreSQL", "Armazena entidades de pagamento e eventos")
+ContainerDb(message_broker, "Message Broker", "Apache Kafka", "Transporta eventos de pagamento e orquestração.")
+
+Rel(payer, controller, "Cria ou visualiza pagamentos")
+Rel(controller, service, "Solicita criação/visualização de pagamento")
+
+Rel(service, repo, "Salva entidade pagamento")
+Rel(service, mapper, "Usa para conversão")
+Rel(service, event_store, "Cria evento de pagamento criado")
+Rel(service, message_broker, "Publica eventos dos pagamentos")
+
+Rel(event_store, event_repo, "Persiste evento de pagamento criado")
+Rel(event_repo, database, "Grava evento de pagamento criado")
+Rel(repo, database, "Grava pagamento")
+
+Rel(service, saga, "Inicia Orquestração")
+Rel(saga, service, "Executa ações de compensação/confirmação")
+
+Rel(message_broker, response_listener, "Manda evento")
+Rel(message_broker, saga_listener, "Envia eventos")
+Rel(response_listener, service, "Envia confirmação/falha de pagamento")
+
+Rel(saga_listener, saga, "Dispara próximo passo da saga")
+
+SHOW_LEGEND()
+@enduml
