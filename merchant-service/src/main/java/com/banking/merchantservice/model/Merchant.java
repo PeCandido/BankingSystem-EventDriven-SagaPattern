@@ -1,9 +1,6 @@
 package com.banking.merchantservice.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -13,12 +10,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Merchant {
-    private UUID id;
-    private String name;
-    private String email;
-    private String phone;
-    private BigDecimal balance;
-    private String currency;
+    @NonNull private UUID id;
+    @NonNull private String name;
+    @NonNull private String email;
+    @NonNull private String phone;
+    @NonNull private BigDecimal balance;
+    @NonNull private String currency;
 
     public void receivePayment(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
@@ -31,12 +28,11 @@ public class Merchant {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new IllegalArgumentException("Amount must be greater than zero");
         }
-        if (this.balance == null || this.balance.compareTo(amount) < 0) {
+        if (this.balance.compareTo(amount) < 0) {
             throw new IllegalArgumentException("Insufficient balance");
         }
         this.balance = this.balance.subtract(amount);
     }
-
 
     public void initialize(BigDecimal initialBalance) {
         this.id = UUID.randomUUID();

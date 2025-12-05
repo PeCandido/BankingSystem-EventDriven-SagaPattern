@@ -11,30 +11,21 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Payment {
-
-    private UUID id;
-    private UUID payerId;
-    private String payerEmail;
-    private UUID payeeId;
-    private BigDecimal amount;
-    private String currency;
-    private PaymentStatus status;
+    @NonNull private UUID id;
+    @NonNull private UUID payerId;
+    @NonNull private String payerEmail;
+    @NonNull private UUID payeeId;
+    @NonNull private BigDecimal amount;
+    @NonNull private String currency;
+    @NonNull private PaymentStatus status;
 
     public void validate(){
-        if(amount == null || amount.compareTo(BigDecimal.ZERO) <= 0){
+        if(amount.compareTo(BigDecimal.ZERO) <= 0){
             throw new InvalidPaymentException("Amount must be greater than zero");
         }
 
-        if(currency == null || currency.trim().isEmpty()){
+        if(currency.trim().isEmpty()){
             throw new InvalidPaymentException("Currency cannot be null or empty");
-        }
-
-        if(payerId == null){
-            throw new InvalidPaymentException("Payer ID cannot be null or empty");
-        }
-
-        if(payeeId == null){
-            throw new InvalidPaymentException("Payee id is null");
         }
     }
 
