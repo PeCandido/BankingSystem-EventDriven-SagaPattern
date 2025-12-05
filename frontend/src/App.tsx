@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AppProvider } from './context/AppContext'; 
 import Dashboard from './components/Dashboard';
 import EventTimelinePage from './pages/EventTimelinePage';
-import KafkaMonitorPage from './pages/KafkaMonitorPage';
 import Navbar from './components/Navbar';
 
 function App() {
@@ -15,7 +14,6 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/events" element={<EventTimelinePage />} />
-            <Route path="/kafka" element={<KafkaMonitorPage />} />
           </Routes>
         </div>
       </AppProvider>

@@ -42,8 +42,8 @@ export default function EventTimeline({ paymentEvents, merchantEvents }: Props) 
                 {'amount' in event && event.amount && (
                   <p style={{ fontSize: '0.9rem' }}>Valor: R$ {event.amount}</p>
                 )}
-                {'balanceAfter' in event && event.balanceAfter && (
-                  <p style={{ fontSize: '0.9rem' }}>Saldo: R$ {event.balanceAfter}</p>
+                {'balanceAfter' in event && event.balanceAfter !== null && (
+                  <p style={{ fontSize: '0.9rem' }}>Saldo: R$ {Number(event.balanceAfter).toFixed(2)}</p>
                 )}
                 {'description' in event && event.description && (
                   <p style={{ fontSize: '0.9rem' }}>{event.description}</p>
