@@ -10,12 +10,12 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Merchant {
-    @NonNull private UUID id;
-    @NonNull private String name;
-    @NonNull private String email;
-    @NonNull private String phone;
-    @NonNull private BigDecimal balance;
-    @NonNull private String currency;
+    private UUID id;
+    private String name;
+    private String email;
+    private String phone;
+    private BigDecimal balance;
+    private String currency;
 
     public void receivePayment(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {

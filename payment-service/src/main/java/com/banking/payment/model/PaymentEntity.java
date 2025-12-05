@@ -20,13 +20,10 @@ public class PaymentEntity {
     @Id
     private UUID id;
 
-    @Column(nullable = false, unique = true)
     private UUID payerId;
 
-    @Column(nullable = false, unique = true)
     private String payerEmail;
 
-    @Column(nullable = false, unique = true)
     private UUID payeeId;
 
     @Column(nullable = false)

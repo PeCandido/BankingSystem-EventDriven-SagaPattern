@@ -11,13 +11,13 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Payment {
-    @NonNull private UUID id;
-    @NonNull private UUID payerId;
-    @NonNull private String payerEmail;
-    @NonNull private UUID payeeId;
-    @NonNull private BigDecimal amount;
-    @NonNull private String currency;
-    @NonNull private PaymentStatus status;
+    private UUID id;
+    private UUID payerId;
+    private String payerEmail;
+    private UUID payeeId;
+    private BigDecimal amount;
+    private String currency;
+    private PaymentStatus status;
 
     public void validate(){
         if(amount.compareTo(BigDecimal.ZERO) <= 0){
